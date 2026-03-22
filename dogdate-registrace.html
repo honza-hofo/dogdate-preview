@@ -802,20 +802,52 @@
     </footer>
 
     <script>
-    // Photo preview
+    // Photo preview with compression
+    // Max 300x300px, JPEG quality 0.6 → ~20-40 KB per photo
     function previewPhoto(input, containerId) {
         var container = document.getElementById(containerId);
         if (input.files && input.files[0]) {
+            var file = input.files[0];
+            // Check max 10 MB input
+            if (file.size > 10 * 1024 * 1024) {
+                alert('Fotka je příliš velká. Maximální velikost je 10 MB.');
+                return;
+            }
             var reader = new FileReader();
             reader.onload = function(e) {
-                var existing = container.querySelector('img');
-                if (existing) existing.remove();
-                var img = document.createElement('img');
-                img.src = e.target.result;
-                container.insertBefore(img, container.firstChild);
-                container.classList.add('has-photo');
+                var origImg = new Image();
+                origImg.onload = function() {
+                    // Compress: resize to max 300x300 and convert to JPEG
+                    var canvas = document.createElement('canvas');
+                    var maxSize = 300;
+                    var w = origImg.width;
+                    var h = origImg.height;
+                    // Crop to square (center crop)
+                    var cropSize = Math.min(w, h);
+                    var sx = (w - cropSize) / 2;
+                    var sy = (h - cropSize) / 2;
+                    canvas.width = maxSize;
+                    canvas.height = maxSize;
+                    var ctx = canvas.getContext('2d');
+                    ctx.drawImage(origImg, sx, sy, cropSize, cropSize, 0, 0, maxSize, maxSize);
+                    // Convert to JPEG at 60% quality (~20-40 KB)
+                    var compressed = canvas.toDataURL('image/jpeg', 0.6);
+                    // Show preview
+                    var existing = container.querySelector('img');
+                    if (existing) existing.remove();
+                    var img = document.createElement('img');
+                    img.src = compressed;
+                    container.insertBefore(img, container.firstChild);
+                    container.classList.add('has-photo');
+                    // Store compressed data for later upload
+                    container.dataset.compressed = compressed;
+                    // Show size info
+                    var sizeKB = Math.round(compressed.length * 0.75 / 1024);
+                    console.log('Compressed photo: ' + sizeKB + ' KB');
+                };
+                origImg.src = e.target.result;
             };
-            reader.readAsDataURL(input.files[0]);
+            reader.readAsDataURL(file);
         }
     }
 
