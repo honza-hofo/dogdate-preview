@@ -41,7 +41,7 @@
 
         /* HERO */
         .hero-dark {
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            background: url('dogdate-hero.jpg') center/cover no-repeat;
             padding: 100px 30px 90px;
             text-align: center;
             position: relative;
@@ -50,8 +50,8 @@
         .hero-dark::before {
             content: '';
             position: absolute;
-            top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle at 30% 50%, rgba(227,10,20,0.08) 0%, transparent 50%);
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.55);
             pointer-events: none;
         }
         .hero-dark-inner { max-width: 700px; margin: 0 auto; position: relative; z-index: 1; }
