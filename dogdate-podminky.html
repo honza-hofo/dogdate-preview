@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Podmínky a ochrana údajů | DogDate | Makej s MANMATem</title>
+    <meta name="description" content="Podmínky používání a ochrana osobních údajů služby DogDate.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; overflow-x: hidden; }
+        body { font-family: 'Poppins', sans-serif; background: #f4f5f7; color: #333; line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+
+        /* HEADER */
+        .site-header { background: #fff; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+        .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; height: 80px; position: relative; }
+        .logo-link { display: flex; align-items: center; text-decoration: none; flex-shrink: 0; }
+        .logo-link img { height: 50px; width: auto; }
+        .nav-center { display: flex; align-items: center; gap: 36px; list-style: none; position: absolute; left: 50%; transform: translateX(-50%); }
+        .nav-center a { text-decoration: none; color: #333; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; position: relative; padding: 4px 0; transition: color 0.3s ease; }
+        .nav-center a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: #E30A14; transition: width 0.3s ease; }
+        .nav-center a:hover::after, .nav-center a.active::after { width: 100%; }
+        .nav-center a:hover, .nav-center a.active { color: #E30A14; }
+        .header-right { display: flex; align-items: center; flex-shrink: 0; }
+        .burger-menu { display: none; background: none; border: none; cursor: pointer; padding: 8px; flex-direction: column; gap: 5px; z-index: 1010; }
+        .burger-menu span { display: block; width: 24px; height: 2px; background: #333; border-radius: 2px; transition: all 0.3s ease; }
+        .burger-menu.open span:nth-child(1) { transform: rotate(45deg) translate(5px,5px); }
+        .burger-menu.open span:nth-child(2) { opacity: 0; }
+        .burger-menu.open span:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); }
+        .mobile-nav-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; opacity: 0; transition: opacity 0.3s ease; }
+        .mobile-nav-overlay.visible { opacity: 1; }
+        .mobile-nav { display: none; position: fixed; top: 0; right: -300px; width: 300px; height: 100%; background: #fff; z-index: 1005; padding: 100px 30px 30px; transition: right 0.3s ease; box-shadow: -5px 0 30px rgba(0,0,0,0.1); overflow-y: auto; }
+        .mobile-nav.open { right: 0; }
+        .mobile-nav a { display: block; text-decoration: none; color: #333; font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; padding: 16px 0; border-bottom: 1px solid #eee; }
+        .mobile-nav a:hover, .mobile-nav a.active { color: #E30A14; }
+
+        /* CONTENT */
+        .content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 30px 80px;
+        }
+        .content h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 36px;
+            font-weight: 800;
+            color: #222;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+        .content h1 span { color: #E30A14; }
+        .content .last-update {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 40px;
+        }
+        .content h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: #222;
+            margin-top: 40px;
+            margin-bottom: 16px;
+        }
+        .content p {
+            font-size: 15px;
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+        .content ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 16px;
+        }
+        .content ul li {
+            font-size: 15px;
+            color: #555;
+            line-height: 1.8;
+            padding-left: 24px;
+            position: relative;
+            margin-bottom: 4px;
+        }
+        .content ul li::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 11px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #E30A14;
+        }
+        .content a {
+            color: #E30A14;
+            text-decoration: underline;
+        }
+        .content a:hover {
+            color: #c50812;
+        }
+        .content .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 40px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #E30A14;
+            text-decoration: none;
+        }
+        .content .back-link:hover {
+            color: #c50812;
+        }
+
+        /* FOOTER */
+        .site-footer { background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: rgba(255,255,255,0.7); padding: 60px 30px 40px; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 40px; }
+        .footer-col { display: flex; flex-direction: column; }
+        .footer-col h4 { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #fff; margin-bottom: 20px; }
+        .footer-logo { margin-bottom: 16px; }
+        .footer-logo img { height: 40px; width: auto; filter: brightness(0) invert(1); }
+        .footer-col p { font-size: 14px; line-height: 1.8; color: rgba(255,255,255,0.5); }
+        .footer-contact-item { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; font-size: 14px; color: rgba(255,255,255,0.7); }
+        .footer-contact-item svg { width: 18px; height: 18px; color: #E30A14; flex-shrink: 0; }
+        .footer-contact-item a { color: rgba(255,255,255,0.7); text-decoration: none; }
+        .footer-contact-item a:hover { color: #fff; }
+        .social-links { display: flex; gap: 12px; margin-top: 8px; }
+        .social-link { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; transition: background 0.3s ease, transform 0.2s ease; text-decoration: none; }
+        .social-link:hover { background: #E30A14; transform: translateY(-2px); }
+        .social-link svg { width: 18px; height: 18px; fill: #fff; }
+        .footer-bottom { max-width: 1200px; margin: 40px auto 0; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.08); text-align: center; font-size: 13px; color: rgba(255,255,255,0.35); }
+        .footer-bottom a { color: rgba(255,255,255,0.5); text-decoration: none; }
+        .footer-bottom a:hover { color: #fff; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .header-inner { height: 65px; padding: 0 20px; }
+            .logo-link img { height: 38px; }
+            .nav-center { display: none; }
+            .burger-menu { display: flex; }
+            .mobile-nav { display: block; }
+            .mobile-nav-overlay { display: block; }
+            .content { padding: 40px 20px 60px; }
+            .content h1 { font-size: 28px; }
+            .content h2 { font-size: 18px; }
+            .footer-inner { grid-template-columns: 1fr; gap: 30px; text-align: center; }
+            .footer-contact-item { justify-content: center; }
+            .social-links { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="index.html" class="logo-link">
+                <img src="manmat-logo.png" alt="MANMAT">
+            </a>
+            <ul class="nav-center">
+                <li><a href="kontakt.html">Kontakt</a></li>
+                <li><a href="ambasadori.html">Ambasadori</a></li>
+                <li><a href="clanky.html">Články</a></li>
+                <li><a href="kalendar.html">Kalendář</a></li>
+                <li><a href="makej2026.html">Makej 2026</a></li>
+                <li><a href="dogdate.html" class="active">DogDate</a></li>
+            </ul>
+            <div class="header-right">
+                <button class="burger-menu" id="burgerMenu" aria-label="Menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+    <nav class="mobile-nav" id="mobileNav">
+        <a href="kontakt.html">Kontakt</a>
+        <a href="ambasadori.html">Ambasadori</a>
+        <a href="clanky.html">Články</a>
+        <a href="kalendar.html">Kalendář</a>
+        <a href="makej2026.html">Makej 2026</a>
+        <a href="dogdate.html" class="active">DogDate</a>
+    </nav>
+
+    <div class="content">
+        <h1>Podmínky používání a ochrana osobních údajů<span> – DogDate</span></h1>
+        <p class="last-update">Poslední aktualizace: 22. 3. 2026</p>
+
+        <h2>1. O službě DogDate</h2>
+        <p>DogDate je bezplatná služba provozovaná MANMAT s.r.o. (IČO: 03166236, K Drůbežárně 220, 549 54 Police nad Metují) jako součást webu MakejsMANMATem.cz. Služba umožňuje pejskařům najít parťáky na společné procházky se psy.</p>
+
+        <h2>2. Správce osobních údajů</h2>
+        <p>
+            MANMAT s.r.o.<br>
+            K Drůbežárně 220, 549 54 Police nad Metují<br>
+            IČO: 03166236<br>
+            Email: <a href="mailto:dog@manmat.cz">dog@manmat.cz</a><br>
+            Telefon: <a href="tel:+420730858435">+420 730 858 435</a>
+        </p>
+
+        <h2>3. Jaké údaje zpracováváme</h2>
+        <p>Při registraci a používání DogDate zpracováváme:</p>
+        <ul>
+            <li><strong>Osobní údaje:</strong> jméno, věk, město, krátký popis (bio), profilová fotografie</li>
+            <li><strong>Údaje o psovi:</strong> jméno, plemeno, velikost, povaha, fotografie</li>
+            <li><strong>Údaje o aktivitě:</strong> preferovaná vzdálenost procházky, časová dostupnost, stav "Jdu ven dnes"</li>
+            <li><strong>Komunikace:</strong> zprávy zasílané jiným uživatelům</li>
+            <li><strong>Technické údaje:</strong> IP adresa, typ prohlížeče, čas přístupu</li>
+        </ul>
+
+        <h2>4. Účel zpracování</h2>
+        <ul>
+            <li>Vytvoření a správa uživatelského profilu</li>
+            <li>Zobrazování profilu ostatním uživatelům služby</li>
+            <li>Párování uživatelů na základě lokace, dostupnosti a preferencí</li>
+            <li>Umožnění komunikace mezi uživateli</li>
+            <li>Zajištění bezpečnosti a prevence zneužití služby</li>
+        </ul>
+
+        <h2>5. Právní základ zpracování</h2>
+        <ul>
+            <li><strong>Souhlas</strong> (čl. 6 odst. 1 písm. a) GDPR) – udělený při registraci</li>
+            <li><strong>Plnění smlouvy</strong> (čl. 6 odst. 1 písm. b) GDPR) – poskytování služby</li>
+            <li><strong>Oprávněný zájem</strong> (čl. 6 odst. 1 písm. f) GDPR) – bezpečnost a prevence zneužití</li>
+        </ul>
+
+        <h2>6. Kdo má přístup k vašim údajům</h2>
+        <ul>
+            <li>Váš profil (jméno, město, bio, informace o psovi, fotografie, dostupnost) je viditelný ostatním registrovaným uživatelům DogDate</li>
+            <li>Zprávy jsou viditelné pouze odesílateli a příjemci</li>
+            <li>Vaše údaje neprodáváme ani neposkytujeme třetím stranám pro marketingové účely</li>
+            <li>K údajům má přístup správce (MANMAT s.r.o.) pro účely administrace a řešení problémů</li>
+        </ul>
+
+        <h2>7. Doba uchování údajů</h2>
+        <ul>
+            <li><strong>Údaje profilu:</strong> po dobu existence účtu + 30 dní po smazání</li>
+            <li><strong>Zprávy:</strong> po dobu existence účtů obou účastníků konverzace</li>
+            <li><strong>Technické logy:</strong> maximálně 90 dní</li>
+        </ul>
+
+        <h2>8. Vaše práva (dle GDPR)</h2>
+        <p>Máte právo:</p>
+        <ul>
+            <li><strong>Na přístup</strong> ke svým údajům – v sekci "Profil" nebo na vyžádání emailem</li>
+            <li><strong>Na opravu údajů</strong> – v sekci "Profil" &rarr; "Upravit profil"</li>
+            <li><strong>Na výmaz</strong> účtu a všech údajů – v sekci "Profil" &rarr; "Požádat o výmaz účtu" nebo emailem na <a href="mailto:dog@manmat.cz">dog@manmat.cz</a></li>
+            <li><strong>Na export/přenositelnost</strong> údajů – v sekci "Profil" &rarr; "Stáhnout moje data"</li>
+            <li><strong>Na omezení zpracování</strong></li>
+            <li><strong>Na odvolání souhlasu</strong> – kdykoli emailem na <a href="mailto:dog@manmat.cz">dog@manmat.cz</a></li>
+            <li><strong>Podat stížnost</strong> u Úřadu pro ochranu osobních údajů (<a href="https://www.uoou.cz" target="_blank" rel="noopener">www.uoou.cz</a>)</li>
+        </ul>
+
+        <h2 id="podminky">9. Podmínky používání</h2>
+        <ul>
+            <li>Služba je určena osobám starším 18 let</li>
+            <li>Uživatel se zavazuje uvádět pravdivé údaje</li>
+            <li>Je zakázáno zveřejňovat urážlivý, nevhodný nebo nezákonný obsah</li>
+            <li>Je zakázáno obtěžovat ostatní uživatele</li>
+            <li>Provozovatel si vyhrazuje právo smazat účet porušující podmínky</li>
+            <li>Provozovatel neodpovídá za chování uživatelů při osobních setkáních</li>
+            <li>Uživatel je odpovědný za bezpečnost svého psa při společných procházkách</li>
+        </ul>
+
+        <h2>10. Bezpečnostní doporučení</h2>
+        <ul>
+            <li>První setkání doporučujeme na veřejném místě</li>
+            <li>Informujte blízkou osobu o plánované procházce</li>
+            <li>Ujistěte se, že je váš pes očkovaný a socializovaný</li>
+            <li>V případě nevhodného chování uživatele kontaktujte <a href="mailto:dog@manmat.cz">dog@manmat.cz</a></li>
+        </ul>
+
+        <h2>11. Cookies</h2>
+        <p>DogDate používá localStorage pro ukládání vašich preferencí a stavu přihlášení. Nepoužíváme sledovací cookies třetích stran.</p>
+
+        <h2>12. Kontakt</h2>
+        <p>Pro jakékoli dotazy ohledně ochrany osobních údajů nebo podmínek používání nás kontaktujte:</p>
+        <p>
+            Email: <a href="mailto:dog@manmat.cz">dog@manmat.cz</a><br>
+            Telefon: <a href="tel:+420730858435">+420 730 858 435</a>
+        </p>
+
+        <h2>13. Dozorový úřad</h2>
+        <p>
+            Úřad pro ochranu osobních údajů<br>
+            <a href="https://www.uoou.cz" target="_blank" rel="noopener">www.uoou.cz</a>
+        </p>
+
+        <a href="dogdate.html" class="back-link">&larr; Zpět na DogDate</a>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-col">
+                <div class="footer-logo">
+                    <img src="manmat-logo.png" alt="MANMAT">
+                </div>
+                <p>Jsme komunita, která žije psími sporty</p>
+            </div>
+            <div class="footer-col">
+                <h4>Kontakt</h4>
+                <div class="footer-contact-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    <a href="mailto:formanek@manmat.cz">formanek@manmat.cz</a>
+                </div>
+                <div class="footer-contact-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                    <a href="tel:+420737060454">+420 737 060 454</a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h4>Sledujte nás</h4>
+                <div class="social-links">
+                    <a href="https://www.facebook.com/makejsmanmatem" class="social-link" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+                    <a href="https://www.instagram.com/makejsmanmatem" class="social-link" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+                    <a href="https://www.youtube.com/@makejsmanmatem" class="social-link" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 <a href="index.html">MakejsMANMATem.cz</a> &middot; Powered by MANMAT &middot; <a href="dogdate-podminky.html" style="color:rgba(255,255,255,0.5);text-decoration:none;">Podmínky a ochrana údajů</a></p>
+        </div>
+    </footer>
+
+    <script>
+    const burgerMenu = document.getElementById('burgerMenu');
+    const mobileNav = document.getElementById('mobileNav');
+    const mobileNavOverlay = document.getElementById('mobileNavOverlay');
+    function toggleMobileMenu() {
+        const isOpen = mobileNav.classList.contains('open');
+        if (isOpen) {
+            mobileNav.classList.remove('open');
+            burgerMenu.classList.remove('open');
+            mobileNavOverlay.classList.remove('visible');
+            document.body.style.overflow = '';
+            setTimeout(() => { mobileNavOverlay.style.display = 'none'; }, 300);
+        } else {
+            mobileNavOverlay.style.display = 'block';
+            mobileNavOverlay.offsetHeight;
+            mobileNav.classList.add('open');
+            burgerMenu.classList.add('open');
+            mobileNavOverlay.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+    burgerMenu.addEventListener('click', toggleMobileMenu);
+    mobileNavOverlay.addEventListener('click', toggleMobileMenu);
+    </script>
+    <script src="cookie-consent.js"></script>
+</body>
+</html>

@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WalkMate | DogDate | Makej s MANMATem</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; overflow-x: hidden; }
+        body { font-family: 'Poppins', sans-serif; background: #f4f5f7; color: #333; line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+
+        /* HEADER */
+        .site-header { background: #fff; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+        .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; height: 80px; position: relative; }
+        .logo-link { display: flex; align-items: center; text-decoration: none; flex-shrink: 0; }
+        .logo-link img { height: 50px; width: auto; }
+        .nav-center { display: flex; align-items: center; gap: 36px; list-style: none; position: absolute; left: 50%; transform: translateX(-50%); }
+        .nav-center a { text-decoration: none; color: #333; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; position: relative; padding: 4px 0; transition: color 0.3s ease; }
+        .nav-center a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: #E30A14; transition: width 0.3s ease; }
+        .nav-center a:hover::after, .nav-center a.active::after { width: 100%; }
+        .nav-center a:hover, .nav-center a.active { color: #E30A14; }
+        .header-right { display: flex; align-items: center; flex-shrink: 0; }
+        .burger-menu { display: none; background: none; border: none; cursor: pointer; padding: 8px; flex-direction: column; gap: 5px; z-index: 1010; }
+        .burger-menu span { display: block; width: 24px; height: 2px; background: #333; border-radius: 2px; transition: all 0.3s ease; }
+        .burger-menu.open span:nth-child(1) { transform: rotate(45deg) translate(5px,5px); }
+        .burger-menu.open span:nth-child(2) { opacity: 0; }
+        .burger-menu.open span:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); }
+        .mobile-nav-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; opacity: 0; transition: opacity 0.3s ease; }
+        .mobile-nav-overlay.visible { opacity: 1; }
+        .mobile-nav { display: none; position: fixed; top: 0; right: -300px; width: 300px; height: 100%; background: #fff; z-index: 1005; padding: 100px 30px 30px; transition: right 0.3s ease; box-shadow: -5px 0 30px rgba(0,0,0,0.1); overflow-y: auto; }
+        .mobile-nav.open { right: 0; }
+        .mobile-nav a { display: block; text-decoration: none; color: #333; font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; padding: 16px 0; border-bottom: 1px solid #eee; }
+        .mobile-nav a:hover, .mobile-nav a.active { color: #E30A14; }
+
+        /* APP CONTAINER */
+        .app-container { max-width: 1200px; margin: 0 auto; padding: 0 30px 80px; }
+
+        /* TAB NAV */
+        .tab-nav {
+            display: flex;
+            background: #fff;
+            border-radius: 12px;
+            margin: 24px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            overflow: hidden;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 16px 8px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #999;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            position: relative;
+        }
+        .tab-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 20%; right: 20%;
+            height: 3px;
+            background: transparent;
+            border-radius: 3px 3px 0 0;
+            transition: background 0.3s ease;
+        }
+        .tab-btn.active { color: #E30A14; }
+        .tab-btn.active::after { background: #E30A14; }
+        .tab-btn:hover { color: #E30A14; }
+        .tab-icon { font-size: 20px; }
+        .tab-badge {
+            position: absolute;
+            top: 8px;
+            right: calc(50% - 20px);
+            background: #E30A14;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 700;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* TAB CONTENT */
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* FILTER BAR */
+        .filter-bar {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .filter-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #999;
+        }
+        .filter-buttons {
+            display: flex;
+            gap: 6px;
+        }
+        .filter-btn {
+            padding: 6px 14px;
+            border: 2px solid #eee;
+            border-radius: 20px;
+            background: #fff;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .filter-btn.active { border-color: #E30A14; color: #E30A14; background: rgba(227,10,20,0.04); }
+        .filter-btn:hover { border-color: #ccc; }
+        .filter-range {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .filter-range input[type="range"] {
+            width: 120px;
+            -webkit-appearance: none;
+            height: 4px;
+            background: #eee;
+            border-radius: 2px;
+            outline: none;
+        }
+        .filter-range input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #E30A14;
+            cursor: pointer;
+        }
+        .filter-range-val {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: #E30A14;
+            min-width: 40px;
+        }
+
+        /* PROFILE CARDS GRID */
+        .discover-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .discover-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+        .discover-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        .discover-card.hidden { display: none; }
+        .discover-card.matched {
+            animation: matchPulse 0.5s ease;
+        }
+        @keyframes matchPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+        .card-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 18px 0;
+        }
+        .card-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .card-name {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: #222;
+        }
+        .card-meta {
+            font-size: 12px;
+            color: #999;
+        }
+        .card-body { padding: 14px 18px; }
+        .card-dog {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            color: #555;
+        }
+        .card-dog strong { color: #222; }
+        .card-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 14px;
+        }
+        .badge {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            padding: 3px 8px;
+            border-radius: 20px;
+        }
+        .badge-size { background: #f0f0f0; color: #555; }
+        .badge-available { background: rgba(46,204,113,0.12); color: #27ae60; }
+        .badge-playful { background: rgba(255,165,0,0.12); color: #e67e22; }
+        .badge-calm { background: rgba(52,152,219,0.12); color: #2980b9; }
+        .badge-mixed { background: rgba(155,89,182,0.12); color: #8e44ad; }
+        .badge-time { background: rgba(0,0,0,0.04); color: #888; }
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            padding: 0 18px 18px;
+        }
+        .card-action-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-match {
+            background: #E30A14;
+            color: #fff;
+        }
+        .btn-match:hover { background: #c50812; transform: translateY(-1px); }
+        .btn-skip {
+            background: #f0f0f0;
+            color: #888;
+        }
+        .btn-skip:hover { background: #e0e0e0; }
+
+        /* MATCH OVERLAY */
+        .match-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .match-overlay.visible { display: flex; }
+        .match-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 50px 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: matchBounce 0.5s ease;
+        }
+        @keyframes matchBounce {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .match-paws {
+            font-size: 60px;
+            display: block;
+            margin-bottom: 16px;
+            animation: pawShake 0.6s ease 0.3s;
+        }
+        @keyframes pawShake {
+            0%,100% { transform: rotate(0); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
+        .match-card h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: #222;
+            margin-bottom: 8px;
+        }
+        .match-card p {
+            font-size: 15px;
+            color: #888;
+            margin-bottom: 24px;
+        }
+        .match-card .btn-match {
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-size: 13px;
+        }
+
+        /* MATCHES TAB */
+        .matches-list { display: flex; flex-direction: column; gap: 12px; }
+        .match-item {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+        .match-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .match-info { flex: 1; }
+        .match-name {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 2px;
+        }
+        .match-detail { font-size: 13px; color: #888; }
+        .match-status {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .status-pending { background: rgba(241,196,15,0.12); color: #f39c12; }
+        .status-confirmed { background: rgba(46,204,113,0.12); color: #27ae60; }
+        .status-planned { background: rgba(52,152,219,0.12); color: #2980b9; }
+        .match-action-btn {
+            padding: 8px 16px;
+            border: 2px solid #eee;
+            border-radius: 20px;
+            background: #fff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .match-action-btn:hover { border-color: #E30A14; color: #E30A14; }
+
+        /* MESSAGES TAB */
+        .conversations-list { display: flex; flex-direction: column; gap: 8px; }
+        .convo-item {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+        .convo-item:hover { transform: translateX(4px); box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .convo-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .convo-info { flex: 1; min-width: 0; }
+        .convo-name {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: #222;
+        }
+        .convo-preview {
+            font-size: 13px;
+            color: #999;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .convo-time { font-size: 11px; color: #ccc; flex-shrink: 0; }
+        .convo-unread {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #E30A14;
+            flex-shrink: 0;
+        }
+
+        /* CHAT VIEW */
+        .chat-view { display: none; }
+        .chat-view.active { display: flex; flex-direction: column; }
+        .chat-header {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+        .chat-back {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: #999;
+            padding: 4px 8px;
+        }
+        .chat-back:hover { color: #E30A14; }
+        .chat-messages {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 400px;
+            max-height: 500px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+        .chat-bubble {
+            max-width: 75%;
+            padding: 10px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .bubble-own {
+            background: #E30A14;
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .bubble-other {
+            background: #f0f0f0;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .bubble-time {
+            font-size: 10px;
+            opacity: 0.6;
+            margin-top: 4px;
+        }
+        .chat-input-bar {
+            background: #fff;
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            gap: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+        .chat-input {
+            flex: 1;
+            border: 2px solid #eee;
+            border-radius: 24px;
+            padding: 10px 18px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .chat-input:focus { border-color: #E30A14; }
+        .chat-send {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #E30A14;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+            flex-shrink: 0;
+        }
+        .chat-send:hover { background: #c50812; }
+        .chat-send svg { width: 20px; height: 20px; fill: #fff; }
+
+        /* MAP TAB */
+        .map-container {
+            background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+            border-radius: 12px;
+            height: 500px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+        .map-grid {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .map-dot {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .map-dot:hover { transform: scale(1.3); }
+        .map-dot.online { background: #27ae60; }
+        .map-dot.offline { background: #bdc3c7; }
+        .map-dot-label {
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #333;
+            white-space: nowrap;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .map-dot:hover .map-dot-label { display: block; }
+        .map-center-marker {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #E30A14;
+            border: 4px solid #fff;
+            box-shadow: 0 2px 12px rgba(227,10,20,0.4);
+        }
+        .map-center-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 2px dashed rgba(227,10,20,0.3);
+        }
+        .map-legend {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            background: #fff;
+            border-radius: 10px;
+            padding: 12px 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #555;
+        }
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* PROFILE TAB */
+        .profile-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            text-align: center;
+        }
+        .profile-big-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, #E30A14, #ff6b6b);
+        }
+        .profile-name {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            color: #222;
+            margin-bottom: 4px;
+        }
+        .profile-city { font-size: 14px; color: #888; margin-bottom: 20px; }
+        .profile-toggle-section {
+            background: #f4f5f7;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+        .toggle-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .toggle-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+        .toggle-track {
+            width: 60px;
+            height: 32px;
+            background: #ddd;
+            border-radius: 16px;
+            position: relative;
+            transition: background 0.3s;
+        }
+        .toggle-track.on { background: #27ae60; }
+        .toggle-thumb {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 26px;
+            height: 26px;
+            background: #fff;
+            border-radius: 50%;
+            transition: left 0.3s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .toggle-track.on .toggle-thumb { left: 31px; }
+        .toggle-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: #888;
+        }
+        .toggle-track.on + .toggle-text { color: #27ae60; }
+        .profile-stars {
+            margin: 16px 0;
+            font-size: 22px;
+        }
+        .profile-rating {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: #888;
+        }
+        .profile-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 24px 0;
+        }
+        .stat-item { text-align: center; }
+        .stat-value {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: #E30A14;
+            display: block;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .profile-edit-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border: 2px solid #eee;
+            border-radius: 50px;
+            background: #fff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .profile-edit-btn:hover { border-color: #E30A14; color: #E30A14; }
+
+        /* MOBILE BOTTOM NAV */
+        .bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+            z-index: 900;
+            padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+        }
+        .bottom-nav-inner {
+            display: flex;
+            justify-content: space-around;
+        }
+        .bottom-nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px 12px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #999;
+            transition: color 0.3s;
+            position: relative;
+        }
+        .bottom-nav-btn.active { color: #E30A14; }
+        .bottom-nav-btn .tab-icon { font-size: 22px; }
+
+        /* FOOTER */
+        .site-footer { background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: rgba(255,255,255,0.7); padding: 60px 30px 40px; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 40px; }
+        .footer-col { display: flex; flex-direction: column; }
+        .footer-col h4 { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #fff; margin-bottom: 20px; }
+        .footer-logo { margin-bottom: 16px; }
+        .footer-logo img { height: 40px; width: auto; filter: brightness(0) invert(1); }
+        .footer-col p { font-size: 14px; line-height: 1.8; color: rgba(255,255,255,0.5); }
+        .footer-contact-item { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; font-size: 14px; color: rgba(255,255,255,0.7); }
+        .footer-contact-item svg { width: 18px; height: 18px; color: #E30A14; flex-shrink: 0; }
+        .footer-contact-item a { color: rgba(255,255,255,0.7); text-decoration: none; }
+        .footer-contact-item a:hover { color: #fff; }
+        .social-links { display: flex; gap: 12px; margin-top: 8px; }
+        .social-link { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; transition: background 0.3s ease, transform 0.2s ease; text-decoration: none; }
+        .social-link:hover { background: #E30A14; transform: translateY(-2px); }
+        .social-link svg { width: 18px; height: 18px; fill: #fff; }
+        .footer-bottom { max-width: 1200px; margin: 40px auto 0; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.08); text-align: center; font-size: 13px; color: rgba(255,255,255,0.35); }
+        .footer-bottom a { color: rgba(255,255,255,0.5); text-decoration: none; }
+        .footer-bottom a:hover { color: #fff; }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .discover-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .header-inner { height: 65px; padding: 0 20px; }
+            .logo-link img { height: 38px; }
+            .nav-center { display: none; }
+            .burger-menu { display: flex; }
+            .mobile-nav { display: block; }
+            .mobile-nav-overlay { display: block; }
+            .app-container { padding: 0 16px 100px; }
+            .tab-nav { display: none; }
+            .bottom-nav { display: block; }
+            .discover-grid { grid-template-columns: 1fr; }
+            .filter-bar { flex-direction: column; align-items: stretch; }
+            .profile-stats { gap: 24px; }
+            .match-item { flex-wrap: wrap; gap: 10px; }
+            .footer-inner { grid-template-columns: 1fr; gap: 30px; text-align: center; }
+            .footer-contact-item { justify-content: center; }
+            .social-links { justify-content: center; }
+            .site-footer { padding-bottom: 100px; }
+        }
+        @media (max-width: 480px) {
+            .card-actions { flex-direction: row; }
+            .profile-stats { flex-direction: column; gap: 16px; }
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #ccc;
+        }
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; display: block; }
+        .empty-state p { font-size: 14px; color: #999; }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="index.html" class="logo-link">
+                <img src="manmat-logo.png" alt="MANMAT">
+            </a>
+            <ul class="nav-center">
+                <li><a href="kontakt.html">Kontakt</a></li>
+                <li><a href="ambasadori.html">Ambasadori</a></li>
+                <li><a href="clanky.html">Články</a></li>
+                <li><a href="kalendar.html">Kalendář</a></li>
+                <li><a href="makej2026.html">Makej 2026</a></li>
+                <li><a href="dogdate.html" class="active">DogDate</a></li>
+            </ul>
+            <div class="header-right">
+                <button class="burger-menu" id="burgerMenu" aria-label="Menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+    <nav class="mobile-nav" id="mobileNav">
+        <a href="kontakt.html">Kontakt</a>
+        <a href="ambasadori.html">Ambasadori</a>
+        <a href="clanky.html">Články</a>
+        <a href="kalendar.html">Kalendář</a>
+        <a href="makej2026.html">Makej 2026</a>
+        <a href="dogdate.html" class="active">DogDate</a>
+    </nav>
+
+    <div class="app-container">
+        <!-- DESKTOP TAB NAV -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('discover')" id="tabDiscover">
+                <span class="tab-icon">🔍</span>
+                Objevovat
+            </button>
+            <button class="tab-btn" onclick="switchTab('matches')" id="tabMatches">
+                <span class="tab-icon">❤️</span>
+                Parťáci
+                <span class="tab-badge" id="matchBadge">3</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('messages')" id="tabMessages">
+                <span class="tab-icon">💬</span>
+                Zprávy
+                <span class="tab-badge" id="msgBadge">2</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('map')" id="tabMap">
+                <span class="tab-icon">📍</span>
+                Mapa
+            </button>
+            <button class="tab-btn" onclick="switchTab('profile')" id="tabProfile">
+                <span class="tab-icon">👤</span>
+                Profil
+            </button>
+        </div>
+
+        <!-- TAB: DISCOVER -->
+        <div class="tab-content active" id="contentDiscover">
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <span class="filter-label">Vzdálenost</span>
+                    <div class="filter-range">
+                        <input type="range" id="filterDistance" min="1" max="20" value="10" oninput="updateFilterDistance()">
+                        <span class="filter-range-val" id="filterDistanceVal">10 km</span>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Velikost psa</span>
+                    <div class="filter-buttons" id="sizeFilter">
+                        <button class="filter-btn active" data-size="all" onclick="filterSize('all')">Vše</button>
+                        <button class="filter-btn" data-size="maly" onclick="filterSize('maly')">Malý</button>
+                        <button class="filter-btn" data-size="stredni" onclick="filterSize('stredni')">Střední</button>
+                        <button class="filter-btn" data-size="velky" onclick="filterSize('velky')">Velký</button>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Dostupnost</span>
+                    <div class="filter-buttons" id="availFilter">
+                        <button class="filter-btn active" data-avail="all" onclick="filterAvail('all')">Vše</button>
+                        <button class="filter-btn" data-avail="dnes" onclick="filterAvail('dnes')">Dnes</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="discover-grid" id="discoverGrid">
+                <!-- Cards will be rendered by JS -->
+            </div>
+        </div>
+
+        <!-- TAB: MATCHES -->
+        <div class="tab-content" id="contentMatches">
+            <div class="matches-list" id="matchesList">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+
+        <!-- TAB: MESSAGES -->
+        <div class="tab-content" id="contentMessages">
+            <div class="conversations-list" id="convoList">
+                <!-- Rendered by JS -->
+            </div>
+            <div class="chat-view" id="chatView">
+                <!-- Chat rendered by JS -->
+            </div>
+        </div>
+
+        <!-- TAB: MAP -->
+        <div class="tab-content" id="contentMap">
+            <div class="map-container">
+                <div class="map-grid"></div>
+                <div class="map-center-ring"></div>
+                <div class="map-center-marker"></div>
+                <!-- Map dots rendered by JS -->
+                <div id="mapDots"></div>
+                <div class="map-legend">
+                    <div class="legend-item"><div class="legend-dot" style="background:#27ae60;"></div> Dostupný dnes</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#bdc3c7;"></div> Nedostupný</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#E30A14;"></div> Vaše pozice</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: PROFILE -->
+        <div class="tab-content" id="contentProfile">
+            <div class="profile-section">
+                <div class="profile-big-avatar">HF</div>
+                <div class="profile-name">Honza Formánek</div>
+                <div class="profile-city">Praha</div>
+
+                <div class="profile-toggle-section">
+                    <span class="toggle-label">Jdu ven dnes</span>
+                    <div class="toggle-switch" onclick="toggleOnline()">
+                        <div class="toggle-track on" id="onlineToggle">
+                            <div class="toggle-thumb"></div>
+                        </div>
+                        <span class="toggle-text" id="onlineText">Dostupný</span>
+                    </div>
+                </div>
+
+                <div class="profile-stars">
+                    ⭐⭐⭐⭐⭐
+                </div>
+                <div class="profile-rating">4.7 / 5.0</div>
+
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">3</span>
+                        <span class="stat-label">Parťáci</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">12</span>
+                        <span class="stat-label">Procházek</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">Březen 2026</span>
+                        <span class="stat-label">Člen od</span>
+                    </div>
+                </div>
+
+                <button class="profile-edit-btn">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    Upravit profil
+                </button>
+
+                <!-- Správa osobních údajů -->
+                <div class="profile-toggle-section" style="text-align: left; margin-top: 24px;">
+                    <span class="toggle-label" style="margin-bottom: 16px;">Správa osobních údajů</span>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <a href="dogdate-podminky.html" style="font-size: 14px; color: #E30A14; text-decoration: underline; font-weight: 500;">Zásady ochrany osobních údajů</a>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px;">
+                            <button class="profile-edit-btn" style="border-color: #E30A14; color: #E30A14;" onclick="if(confirm('Opravdu chcete požádat o výmaz účtu? Všechna vaše data budou nenávratně smazána.')){alert('Vaše žádost o výmaz účtu byla odeslána. Účet bude smazán do 30 dní. Potvrzení obdržíte na email.');}">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                Požádat o výmaz účtu
+                            </button>
+                            <button class="profile-edit-btn" onclick="alert('Vaše data budou připravena ke stažení. Odkaz vám zašleme na email.');">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                Stáhnout moje data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MATCH OVERLAY -->
+    <div class="match-overlay" id="matchOverlay">
+        <div class="match-card">
+            <span class="match-paws">🐾</span>
+            <h2>Máte spojení! 🐾</h2>
+            <p id="matchText">Vy a Jana Nováková jste si padli do oka!</p>
+            <button class="btn-match card-action-btn" onclick="closeMatchOverlay()">Super!</button>
+        </div>
+    </div>
+
+    <!-- MOBILE BOTTOM NAV -->
+    <nav class="bottom-nav">
+        <div class="bottom-nav-inner">
+            <button class="bottom-nav-btn active" onclick="switchTab('discover')" id="bnDiscover">
+                <span class="tab-icon">🔍</span>
+                Objevovat
+            </button>
+            <button class="bottom-nav-btn" onclick="switchTab('matches')" id="bnMatches">
+                <span class="tab-icon">❤️</span>
+                Parťáci
+            </button>
+            <button class="bottom-nav-btn" onclick="switchTab('messages')" id="bnMessages">
+                <span class="tab-icon">💬</span>
+                Zprávy
+            </button>
+            <button class="bottom-nav-btn" onclick="switchTab('map')" id="bnMap">
+                <span class="tab-icon">📍</span>
+                Mapa
+            </button>
+            <button class="bottom-nav-btn" onclick="switchTab('profile')" id="bnProfile">
+                <span class="tab-icon">👤</span>
+                Profil
+            </button>
+        </div>
+    </nav>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-col">
+                <div class="footer-logo">
+                    <img src="manmat-logo.png" alt="MANMAT">
+                </div>
+                <p>Jsme komunita, která žije psími sporty</p>
+            </div>
+            <div class="footer-col">
+                <h4>Kontakt</h4>
+                <div class="footer-contact-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    <a href="mailto:formanek@manmat.cz">formanek@manmat.cz</a>
+                </div>
+                <div class="footer-contact-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                    <a href="tel:+420737060454">+420 737 060 454</a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h4>Sledujte nás</h4>
+                <div class="social-links">
+                    <a href="https://www.facebook.com/makejsmanmatem" class="social-link" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+                    <a href="https://www.instagram.com/makejsmanmatem" class="social-link" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+                    <a href="https://www.youtube.com/@makejsmanmatem" class="social-link" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 <a href="index.html">MakejsMANMATem.cz</a> &middot; Powered by MANMAT &middot; <a href="dogdate-podminky.html" style="color:rgba(255,255,255,0.5);text-decoration:none;">Podmínky a ochrana údajů</a></p>
+        </div>
+    </footer>
+
+    <script>
+    // ===== BURGER MENU =====
+    const burgerMenu = document.getElementById('burgerMenu');
+    const mobileNav = document.getElementById('mobileNav');
+    const mobileNavOverlay = document.getElementById('mobileNavOverlay');
+    function toggleMobileMenu() {
+        const isOpen = mobileNav.classList.contains('open');
+        if (isOpen) {
+            mobileNav.classList.remove('open');
+            burgerMenu.classList.remove('open');
+            mobileNavOverlay.classList.remove('visible');
+            document.body.style.overflow = '';
+            setTimeout(() => { mobileNavOverlay.style.display = 'none'; }, 300);
+        } else {
+            mobileNavOverlay.style.display = 'block';
+            mobileNavOverlay.offsetHeight;
+            mobileNav.classList.add('open');
+            burgerMenu.classList.add('open');
+            mobileNavOverlay.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+    burgerMenu.addEventListener('click', toggleMobileMenu);
+    mobileNavOverlay.addEventListener('click', toggleMobileMenu);
+
+    // ===== MOCK DATA =====
+    const gradients = [
+        'linear-gradient(135deg, #E30A14, #ff6b6b)',
+        'linear-gradient(135deg, #2980b9, #3498db)',
+        'linear-gradient(135deg, #e67e22, #f39c12)',
+        'linear-gradient(135deg, #27ae60, #2ecc71)',
+        'linear-gradient(135deg, #8e44ad, #9b59b6)',
+        'linear-gradient(135deg, #c0392b, #e74c3c)',
+        'linear-gradient(135deg, #16a085, #1abc9c)',
+        'linear-gradient(135deg, #2c3e50, #34495e)',
+        'linear-gradient(135deg, #d35400, #e67e22)',
+        'linear-gradient(135deg, #7f8c8d, #95a5a6)',
+        'linear-gradient(135deg, #f1c40f, #f39c12)',
+        'linear-gradient(135deg, #1abc9c, #2ecc71)',
+    ];
+
+    const profiles = [
+        { id:1, name:'Jana Nováková', initials:'JN', age:28, city:'Praha', distance:2.3, dog:'Max', breed:'Labrador', size:'velky', sizeLabel:'Velký', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Ráno','Odpoledne'], gradient: gradients[0] },
+        { id:2, name:'Petr Svoboda', initials:'PS', age:35, city:'Praha', distance:1.8, dog:'Buddy', breed:'Border kolie', size:'stredni', sizeLabel:'Střední', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Dopoledne','Večer'], gradient: gradients[1] },
+        { id:3, name:'Lucie Veselá', initials:'LV', age:24, city:'Brno', distance:4.1, dog:'Bella', breed:'Zlatý retrívr', size:'velky', sizeLabel:'Velký', temperament:'klidny', tempLabel:'Klidný', available:false, times:['Odpoledne'], gradient: gradients[2] },
+        { id:4, name:'Martin Dvořák', initials:'MD', age:42, city:'Plzeň', distance:6.5, dog:'Rex', breed:'Německý ovčák', size:'velky', sizeLabel:'Velký', temperament:'klidny', tempLabel:'Klidný', available:true, times:['Ráno','Večer'], gradient: gradients[3] },
+        { id:5, name:'Kateřina Procházková', initials:'KP', age:31, city:'Praha', distance:3.5, dog:'Chlupáč', breed:'Kokršpaněl', size:'stredni', sizeLabel:'Střední', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Dopoledne','Odpoledne'], gradient: gradients[4] },
+        { id:6, name:'Tomáš Krejčí', initials:'TK', age:29, city:'Hradec Králové', distance:5.2, dog:'Fík', breed:'Jack Russell', size:'maly', sizeLabel:'Malý', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Ráno'], gradient: gradients[5] },
+        { id:7, name:'Eva Marková', initials:'EM', age:38, city:'Praha', distance:2.8, dog:'Teddy', breed:'Bígl', size:'stredni', sizeLabel:'Střední', temperament:'smisena', tempLabel:'Smíšená', available:false, times:['Odpoledne','Večer'], gradient: gradients[6] },
+        { id:8, name:'David Černý', initials:'DC', age:26, city:'Olomouc', distance:7.3, dog:'Shadow', breed:'Husky', size:'velky', sizeLabel:'Velký', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Ráno','Dopoledne'], gradient: gradients[7] },
+        { id:9, name:'Martina Šťastná', initials:'MŠ', age:33, city:'Praha', distance:1.2, dog:'Lola', breed:'Maltézák', size:'maly', sizeLabel:'Malý', temperament:'klidny', tempLabel:'Klidný', available:true, times:['Dopoledne','Odpoledne'], gradient: gradients[8] },
+        { id:10, name:'Jakub Horák', initials:'JH', age:45, city:'Liberec', distance:8.9, dog:'Argo', breed:'Rhodéský ridgeback', size:'velky', sizeLabel:'Velký', temperament:'klidny', tempLabel:'Klidný', available:false, times:['Večer'], gradient: gradients[9] },
+        { id:11, name:'Tereza Pokorná', initials:'TP', age:22, city:'České Budějovice', distance:9.5, dog:'Daisy', breed:'Český fousek', size:'stredni', sizeLabel:'Střední', temperament:'smisena', tempLabel:'Smíšená', available:true, times:['Ráno','Odpoledne'], gradient: gradients[10] },
+        { id:12, name:'Pavel Novotný', initials:'PN', age:50, city:'Pardubice', distance:6.1, dog:'Bary', breed:'Jezevčík', size:'maly', sizeLabel:'Malý', temperament:'klidny', tempLabel:'Klidný', available:true, times:['Dopoledne','Večer'], gradient: gradients[11] },
+    ];
+
+    // Load/save state
+    function getState() {
+        try {
+            return JSON.parse(localStorage.getItem('walkmate_state')) || { matched: [1,5,9], skipped: [], messages: {} };
+        } catch(e) {
+            return { matched: [1,5,9], skipped: [], messages: {} };
+        }
+    }
+    function saveState(s) {
+        try { localStorage.setItem('walkmate_state', JSON.stringify(s)); } catch(e) {}
+    }
+
+    let state = getState();
+
+    // Init default messages
+    if (!state.messages[1]) {
+        state.messages[1] = [
+            { from: 1, text: 'Ahoj! Viděla jsem, že taky máš rád dlouhé procházky. Max je super kamarád!', time: '10:24' },
+            { from: 'me', text: 'Ahoj Jano! Jo, chodíme hlavně kolem Stromovky. Kam chodíte vy?', time: '10:30' },
+            { from: 1, text: 'My taky! Většinou Stromovka nebo Letná. Co zkusit společnou procházku?', time: '10:32' },
+            { from: 'me', text: 'To zní skvěle! Co třeba zítra odpoledne?', time: '10:35' },
+            { from: 1, text: 'Domluveno! Sejdeme se u vchodu do Stromovky ve 14:00?', time: '10:36' },
+        ];
+    }
+    if (!state.messages[5]) {
+        state.messages[5] = [
+            { from: 5, text: 'Ahoj! Chlupáč by se rád seznámil s tvým psem! Chodíte někam na Praze 6?', time: '14:15' },
+            { from: 'me', text: 'Ahoj Kateřino! Občas chodíme do Divoké Šárky, to je super terén.', time: '14:20' },
+            { from: 5, text: 'Divoká Šárka je perfektní! Kdy byste mohli?', time: '14:22' },
+        ];
+    }
+    saveState(state);
+
+    // Match statuses
+    const matchStatuses = {
+        1: { label: 'Procházka naplánována', cls: 'status-planned' },
+        5: { label: 'Spojení potvrzeno', cls: 'status-confirmed' },
+        9: { label: 'Čeká na potvrzení', cls: 'status-pending' },
+    };
+
+    // ===== TAB SWITCHING =====
+    function switchTab(tab) {
+        // Deactivate all
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.bottom-nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+        // Activate
+        const tabMap = { discover:'Discover', matches:'Matches', messages:'Messages', map:'Map', profile:'Profile' };
+        const tabEl = document.getElementById('tab' + tabMap[tab]);
+        const bnEl = document.getElementById('bn' + tabMap[tab]);
+        const contentEl = document.getElementById('content' + tabMap[tab]);
+        if (tabEl) tabEl.classList.add('active');
+        if (bnEl) bnEl.classList.add('active');
+        if (contentEl) contentEl.classList.add('active');
+
+        // Reset chat view when switching to messages
+        if (tab === 'messages') {
+            document.getElementById('convoList').style.display = '';
+            document.getElementById('chatView').classList.remove('active');
+        }
+    }
+
+    // ===== DISCOVER TAB =====
+    let currentSizeFilter = 'all';
+    let currentAvailFilter = 'all';
+    let currentDistanceFilter = 10;
+
+    function updateFilterDistance() {
+        currentDistanceFilter = parseInt(document.getElementById('filterDistance').value);
+        document.getElementById('filterDistanceVal').textContent = currentDistanceFilter + ' km';
+        renderDiscoverGrid();
+    }
+
+    function filterSize(size) {
+        currentSizeFilter = size;
+        document.querySelectorAll('#sizeFilter .filter-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('#sizeFilter [data-size="'+size+'"]').classList.add('active');
+        renderDiscoverGrid();
+    }
+
+    function filterAvail(avail) {
+        currentAvailFilter = avail;
+        document.querySelectorAll('#availFilter .filter-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('#availFilter [data-avail="'+avail+'"]').classList.add('active');
+        renderDiscoverGrid();
+    }
+
+    function renderDiscoverGrid() {
+        const grid = document.getElementById('discoverGrid');
+        grid.innerHTML = '';
+        const state = getState();
+
+        profiles.forEach(p => {
+            // Skip matched and skipped
+            if (state.matched.includes(p.id) || state.skipped.includes(p.id)) return;
+            // Filter
+            if (currentSizeFilter !== 'all' && p.size !== currentSizeFilter) return;
+            if (currentAvailFilter === 'dnes' && !p.available) return;
+            if (p.distance > currentDistanceFilter) return;
+
+            const tempBadgeCls = p.temperament === 'hravy' ? 'badge-playful' : p.temperament === 'klidny' ? 'badge-calm' : 'badge-mixed';
+
+            grid.innerHTML += `
+                <div class="discover-card" id="card-${p.id}">
+                    <div class="card-top">
+                        <div class="card-avatar" style="background:${p.gradient};">${p.initials}</div>
+                        <div>
+                            <div class="card-name">${p.name}</div>
+                            <div class="card-meta">${p.age} let &middot; ${p.city} &middot; ${p.distance} km</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-dog">🐕 <strong>${p.dog}</strong> &middot; ${p.breed}</div>
+                        <div class="card-badges">
+                            <span class="badge badge-size">${p.sizeLabel}</span>
+                            <span class="badge ${tempBadgeCls}">${p.tempLabel}</span>
+                            ${p.available ? '<span class="badge badge-available">Dostupný dnes</span>' : ''}
+                            ${p.times.map(t => '<span class="badge badge-time">' + t + '</span>').join('')}
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="card-action-btn btn-skip" onclick="skipProfile(${p.id})">✕ Přeskočit</button>
+                        <button class="card-action-btn btn-match" onclick="matchProfile(${p.id})">❤️ Spojit</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        if (!grid.innerHTML.trim()) {
+            grid.innerHTML = '<div class="empty-state"><span class="empty-icon">🐾</span><p>Žádné profily k zobrazení. Zkuste změnit filtry.</p></div>';
+        }
+    }
+
+    function matchProfile(id) {
+        const s = getState();
+        if (!s.matched.includes(id)) {
+            s.matched.push(id);
+            matchStatuses[id] = { label: 'Čeká na potvrzení', cls: 'status-pending' };
+        }
+        saveState(s);
+        state = s;
+
+        // Show overlay
+        const p = profiles.find(x => x.id === id);
+        document.getElementById('matchText').textContent = 'Vy a ' + p.name + ' jste si padli do oka!';
+        document.getElementById('matchOverlay').classList.add('visible');
+
+        renderDiscoverGrid();
+        renderMatches();
+        updateBadges();
+    }
+
+    function skipProfile(id) {
+        const s = getState();
+        if (!s.skipped.includes(id)) s.skipped.push(id);
+        saveState(s);
+        state = s;
+
+        const card = document.getElementById('card-' + id);
+        if (card) {
+            card.style.transition = 'opacity 0.3s, transform 0.3s';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.9)';
+            setTimeout(() => renderDiscoverGrid(), 300);
+        }
+    }
+
+    function closeMatchOverlay() {
+        document.getElementById('matchOverlay').classList.remove('visible');
+    }
+
+    // ===== MATCHES TAB =====
+    function renderMatches() {
+        const s = getState();
+        const list = document.getElementById('matchesList');
+        list.innerHTML = '';
+
+        s.matched.forEach(id => {
+            const p = profiles.find(x => x.id === id);
+            if (!p) return;
+            const status = matchStatuses[id] || { label: 'Čeká na potvrzení', cls: 'status-pending' };
+
+            list.innerHTML += `
+                <div class="match-item">
+                    <div class="match-avatar" style="background:${p.gradient};">${p.initials}</div>
+                    <div class="match-info">
+                        <div class="match-name">${p.name}</div>
+                        <div class="match-detail">${p.dog} (${p.breed}) &middot; ${p.city}</div>
+                    </div>
+                    <span class="match-status ${status.cls}">${status.label}</span>
+                    <button class="match-action-btn" onclick="switchTab('messages'); setTimeout(()=>openChat(${id}), 100);">Napsat zprávu</button>
+                </div>
+            `;
+        });
+
+        if (!list.innerHTML.trim()) {
+            list.innerHTML = '<div class="empty-state"><span class="empty-icon">💔</span><p>Zatím žádní parťáci. Začněte objevovat profily!</p></div>';
+        }
+    }
+
+    // ===== MESSAGES TAB =====
+    function renderConversations() {
+        const s = getState();
+        const list = document.getElementById('convoList');
+        list.innerHTML = '';
+
+        const convoIds = Object.keys(s.messages).map(Number);
+        convoIds.forEach(id => {
+            const p = profiles.find(x => x.id === id);
+            if (!p) return;
+            const msgs = s.messages[id];
+            const last = msgs[msgs.length - 1];
+            const preview = last.from === 'me' ? 'Vy: ' + last.text : last.text;
+            const hasUnread = last.from !== 'me';
+
+            list.innerHTML += `
+                <div class="convo-item" onclick="openChat(${id})">
+                    <div class="convo-avatar" style="background:${p.gradient};">${p.initials}</div>
+                    <div class="convo-info">
+                        <div class="convo-name">${p.name}</div>
+                        <div class="convo-preview">${preview}</div>
+                    </div>
+                    <span class="convo-time">${last.time}</span>
+                    ${hasUnread ? '<div class="convo-unread"></div>' : ''}
+                </div>
+            `;
+        });
+
+        if (!list.innerHTML.trim()) {
+            list.innerHTML = '<div class="empty-state"><span class="empty-icon">💬</span><p>Zatím žádné zprávy.</p></div>';
+        }
+    }
+
+    function openChat(id) {
+        const s = getState();
+        const p = profiles.find(x => x.id === id);
+        if (!p) return;
+
+        document.getElementById('convoList').style.display = 'none';
+        const chatView = document.getElementById('chatView');
+        chatView.classList.add('active');
+
+        const msgs = s.messages[id] || [];
+        const msgsHTML = msgs.map(m => {
+            const cls = m.from === 'me' ? 'bubble-own' : 'bubble-other';
+            return `<div class="chat-bubble ${cls}">${m.text}<div class="bubble-time">${m.time}</div></div>`;
+        }).join('');
+
+        chatView.innerHTML = `
+            <div class="chat-header">
+                <button class="chat-back" onclick="closeChat()">&larr;</button>
+                <div class="convo-avatar" style="background:${p.gradient}; width:40px; height:40px; font-size:13px;">${p.initials}</div>
+                <div>
+                    <div class="convo-name">${p.name}</div>
+                    <div style="font-size:12px; color:#999;">${p.dog} &middot; ${p.city}</div>
+                </div>
+            </div>
+            <div class="chat-messages" id="chatMsgs">${msgsHTML}</div>
+            <div class="chat-input-bar">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Napište zprávu..." onkeydown="if(event.key==='Enter')sendMessage(${id})">
+                <button class="chat-send" onclick="sendMessage(${id})">
+                    <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
+            </div>
+        `;
+
+        // Scroll to bottom
+        const chatMsgs = document.getElementById('chatMsgs');
+        chatMsgs.scrollTop = chatMsgs.scrollHeight;
+    }
+
+    function closeChat() {
+        document.getElementById('convoList').style.display = '';
+        document.getElementById('chatView').classList.remove('active');
+    }
+
+    function sendMessage(id) {
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const s = getState();
+        if (!s.messages[id]) s.messages[id] = [];
+        const now = new Date();
+        const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+        s.messages[id].push({ from: 'me', text: text, time: time });
+        saveState(s);
+        state = s;
+
+        input.value = '';
+        openChat(id);
+    }
+
+    // ===== MAP TAB =====
+    function renderMap() {
+        const container = document.getElementById('mapDots');
+        container.innerHTML = '';
+        const positions = [
+            { id:1, top:'35%', left:'40%', online:true },
+            { id:2, top:'25%', left:'55%', online:true },
+            { id:5, top:'60%', left:'35%', online:true },
+            { id:6, top:'20%', left:'70%', online:true },
+            { id:7, top:'65%', left:'60%', online:false },
+            { id:9, top:'45%', left:'62%', online:true },
+            { id:3, top:'75%', left:'75%', online:false },
+            { id:12, top:'30%', left:'25%', online:true },
+        ];
+
+        positions.forEach(pos => {
+            const p = profiles.find(x => x.id === pos.id);
+            if (!p) return;
+            container.innerHTML += `
+                <div class="map-dot ${pos.online ? 'online' : 'offline'}" style="top:${pos.top}; left:${pos.left};">
+                    <div class="map-dot-label">${p.name} (${p.dog})</div>
+                </div>
+            `;
+        });
+    }
+
+    // ===== PROFILE TAB =====
+    function toggleOnline() {
+        const track = document.getElementById('onlineToggle');
+        const text = document.getElementById('onlineText');
+        track.classList.toggle('on');
+        text.textContent = track.classList.contains('on') ? 'Dostupný' : 'Nedostupný';
+    }
+
+    // ===== BADGES =====
+    function updateBadges() {
+        const s = getState();
+        const matchCount = s.matched.length;
+        const msgCount = Object.keys(s.messages).length;
+        const mb = document.getElementById('matchBadge');
+        const msgb = document.getElementById('msgBadge');
+        if (mb) mb.textContent = matchCount;
+        if (msgb) msgb.textContent = msgCount;
+    }
+
+    // ===== INIT =====
+    renderDiscoverGrid();
+    renderMatches();
+    renderConversations();
+    renderMap();
+    updateBadges();
+    </script>
+    <script src="cookie-consent.js"></script>
+</body>
+</html>
