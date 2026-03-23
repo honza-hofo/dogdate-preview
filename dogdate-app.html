@@ -857,6 +857,26 @@
         }
         .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; display: block; }
         .empty-state p { font-size: 14px; color: #999; }
+        /* Profile detail modal */
+        .profile-modal-overlay { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; padding:20px; }
+        .profile-modal-overlay.visible { display:flex; }
+        .profile-modal { background:#fff; border-radius:16px; max-width:450px; width:100%; max-height:85vh; overflow-y:auto; padding:32px; position:relative; }
+        .profile-modal-close { position:absolute; top:12px; right:16px; background:none; border:none; font-size:24px; cursor:pointer; color:#999; }
+        .profile-modal-close:hover { color:#333; }
+        .profile-modal-avatar { width:100px; height:100px; border-radius:50%; margin:0 auto 16px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:36px; font-weight:700; font-family:Montserrat,sans-serif; }
+        .profile-modal-name { text-align:center; font-family:Montserrat,sans-serif; font-size:22px; font-weight:700; color:#222; }
+        .profile-modal-meta { text-align:center; font-size:14px; color:#888; margin-bottom:20px; }
+        .profile-modal-bio { font-size:14px; color:#555; line-height:1.7; margin-bottom:20px; padding:16px; background:#f9f9f9; border-radius:10px; }
+        .profile-modal-dog { display:flex; align-items:center; gap:12px; padding:16px; background:#fef2f2; border-radius:10px; margin-bottom:20px; }
+        .profile-modal-dog-icon { font-size:32px; }
+        .profile-modal-dog-info strong { display:block; font-family:Montserrat,sans-serif; color:#222; }
+        .profile-modal-dog-info span { font-size:13px; color:#888; }
+        .profile-modal-badges { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:20px; }
+        .profile-modal-actions { display:flex; gap:10px; }
+        .profile-modal-actions button { flex:1; padding:14px; border-radius:50px; font-family:Montserrat,sans-serif; font-size:14px; font-weight:700; cursor:pointer; border:none; transition:all .3s; }
+        .profile-modal-actions .btn-msg { background:#E30A14; color:#fff; }
+        .profile-modal-actions .btn-msg:hover { background:#c50812; }
+        .profile-modal-actions .btn-skip-modal { background:#f4f5f7; color:#666; }
     </style>
 </head>
 <body>
@@ -1048,6 +1068,29 @@
         </div>
     </div>
 
+    <!-- PROFILE DETAIL MODAL -->
+    <div class="profile-modal-overlay" id="profileModal">
+        <div class="profile-modal">
+            <button class="profile-modal-close" onclick="closeProfileModal()">&times;</button>
+            <div class="profile-modal-avatar" id="pmAvatar"></div>
+            <div class="profile-modal-name" id="pmName"></div>
+            <div class="profile-modal-meta" id="pmMeta"></div>
+            <div class="profile-modal-bio" id="pmBio"></div>
+            <div class="profile-modal-dog" id="pmDog">
+                <div class="profile-modal-dog-icon">🐕</div>
+                <div class="profile-modal-dog-info">
+                    <strong id="pmDogName"></strong>
+                    <span id="pmDogInfo"></span>
+                </div>
+            </div>
+            <div class="profile-modal-badges" id="pmBadges"></div>
+            <div class="profile-modal-actions">
+                <button class="btn-skip-modal" onclick="closeProfileModal()">Zavřít</button>
+                <button class="btn-msg" id="pmMsgBtn" onclick="">Napsat zprávu</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MATCH OVERLAY -->
     <div class="match-overlay" id="matchOverlay">
         <div class="match-card">
@@ -1159,18 +1202,18 @@
     ];
 
     const profiles = [
-        { id:1, name:'Jana Nováková', initials:'JN', age:28, city:'Praha', distance:2.3, dog:'Max', breed:'Labrador', size:'velky', sizeLabel:'Velký', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Ráno','Odpoledne'], gradient: gradients[0] },
-        { id:2, name:'Petr Svoboda', initials:'PS', age:35, city:'Praha', distance:1.8, dog:'Buddy', breed:'Border kolie', size:'stredni', sizeLabel:'Střední', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Dopoledne','Večer'], gradient: gradients[1] },
-        { id:3, name:'Lucie Veselá', initials:'LV', age:24, city:'Brno', distance:4.1, dog:'Bella', breed:'Zlatý retrívr', size:'velky', sizeLabel:'Velký', temperament:'klidny', tempLabel:'Klidný', available:false, times:['Odpoledne'], gradient: gradients[2] },
-        { id:4, name:'Martin Dvořák', initials:'MD', age:42, city:'Plzeň', distance:6.5, dog:'Rex', breed:'Německý ovčák', size:'velky', sizeLabel:'Velký', temperament:'klidny', tempLabel:'Klidný', available:true, times:['Ráno','Večer'], gradient: gradients[3] },
-        { id:5, name:'Kateřina Procházková', initials:'KP', age:31, city:'Praha', distance:3.5, dog:'Chlupáč', breed:'Kokršpaněl', size:'stredni', sizeLabel:'Střední', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Dopoledne','Odpoledne'], gradient: gradients[4] },
-        { id:6, name:'Tomáš Krejčí', initials:'TK', age:29, city:'Hradec Králové', distance:5.2, dog:'Fík', breed:'Jack Russell', size:'maly', sizeLabel:'Malý', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Ráno'], gradient: gradients[5] },
-        { id:7, name:'Eva Marková', initials:'EM', age:38, city:'Praha', distance:2.8, dog:'Teddy', breed:'Bígl', size:'stredni', sizeLabel:'Střední', temperament:'smisena', tempLabel:'Smíšená', available:false, times:['Odpoledne','Večer'], gradient: gradients[6] },
-        { id:8, name:'David Černý', initials:'DC', age:26, city:'Olomouc', distance:7.3, dog:'Shadow', breed:'Husky', size:'velky', sizeLabel:'Velký', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Ráno','Dopoledne'], gradient: gradients[7] },
-        { id:9, name:'Martina Šťastná', initials:'MŠ', age:33, city:'Praha', distance:1.2, dog:'Lola', breed:'Maltézák', size:'maly', sizeLabel:'Malý', temperament:'klidny', tempLabel:'Klidný', available:true, times:['Dopoledne','Odpoledne'], gradient: gradients[8] },
-        { id:10, name:'Jakub Horák', initials:'JH', age:45, city:'Liberec', distance:8.9, dog:'Argo', breed:'Rhodéský ridgeback', size:'velky', sizeLabel:'Velký', temperament:'klidny', tempLabel:'Klidný', available:false, times:['Večer'], gradient: gradients[9] },
-        { id:11, name:'Tereza Pokorná', initials:'TP', age:22, city:'České Budějovice', distance:9.5, dog:'Daisy', breed:'Český fousek', size:'stredni', sizeLabel:'Střední', temperament:'smisena', tempLabel:'Smíšená', available:true, times:['Ráno','Odpoledne'], gradient: gradients[10] },
-        { id:12, name:'Pavel Novotný', initials:'PN', age:50, city:'Pardubice', distance:6.1, dog:'Bary', breed:'Jezevčík', size:'maly', sizeLabel:'Malý', temperament:'klidny', tempLabel:'Klidný', available:true, times:['Dopoledne','Večer'], gradient: gradients[11] },
+        { id:1, name:'Jana Nováková', initials:'JN', age:28, city:'Praha', distance:2.3, dog:'Max', breed:'Labrador', size:'velky', sizeLabel:'Velký', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Ráno','Odpoledne'], gradient: gradients[0], bio:'Miluji procházky po Stromovce a Letné. Hledám parťáky na ranní venčení!', walkKm:5 },
+        { id:2, name:'Petr Svoboda', initials:'PS', age:35, city:'Praha', distance:1.8, dog:'Buddy', breed:'Border kolie', size:'stredni', sizeLabel:'Střední', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Dopoledne','Večer'], gradient: gradients[1], bio:'Běhám se psem každé ráno. Rád potkávám nové lidi i psy.', walkKm:8 },
+        { id:3, name:'Lucie Veselá', initials:'LV', age:24, city:'Brno', distance:4.1, dog:'Bella', breed:'Zlatý retrívr', size:'velky', sizeLabel:'Velký', temperament:'klidny', tempLabel:'Klidný', available:false, times:['Odpoledne'], gradient: gradients[2], bio:'Studentka veteriny. Moje Bella potřebuje víc kamarádů na hraní!', walkKm:4 },
+        { id:4, name:'Martin Dvořák', initials:'MD', age:42, city:'Plzeň', distance:6.5, dog:'Rex', breed:'Německý ovčák', size:'velky', sizeLabel:'Velký', temperament:'klidny', tempLabel:'Klidný', available:true, times:['Ráno','Večer'], gradient: gradients[3], bio:'Aktivní táta se psem. Chodíme na túry každý víkend.', walkKm:10 },
+        { id:5, name:'Kateřina Procházková', initials:'KP', age:31, city:'Praha', distance:3.5, dog:'Chlupáč', breed:'Kokršpaněl', size:'stredni', sizeLabel:'Střední', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Dopoledne','Odpoledne'], gradient: gradients[4], bio:'Freelancerka s flexibilním časem. Chlupáč je můj nejlepší kolega.', walkKm:6 },
+        { id:6, name:'Tomáš Krejčí', initials:'TK', age:29, city:'Hradec Králové', distance:5.2, dog:'Fík', breed:'Jack Russell', size:'maly', sizeLabel:'Malý', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Ráno'], gradient: gradients[5], bio:'IT borec co potřebuje víc čerstvého vzduchu. Pomůžete?', walkKm:3 },
+        { id:7, name:'Eva Marková', initials:'EM', age:38, city:'Praha', distance:2.8, dog:'Teddy', breed:'Bígl', size:'stredni', sizeLabel:'Střední', temperament:'smisena', tempLabel:'Smíšená', available:false, times:['Odpoledne','Večer'], gradient: gradients[6], bio:'Máma dvou dětí a jednoho huňáče. Rádi chodíme do parku.', walkKm:4 },
+        { id:8, name:'David Černý', initials:'DC', age:26, city:'Olomouc', distance:7.3, dog:'Shadow', breed:'Husky', size:'velky', sizeLabel:'Velký', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Ráno','Dopoledne'], gradient: gradients[7], bio:'Fotograf a outdoorový nadšenec. Můj pes je nejlepší model.', walkKm:10 },
+        { id:9, name:'Martina Šťastná', initials:'MŠ', age:33, city:'Praha', distance:1.2, dog:'Lola', breed:'Maltézák', size:'maly', sizeLabel:'Malý', temperament:'klidny', tempLabel:'Klidný', available:true, times:['Dopoledne','Odpoledne'], gradient: gradients[8], bio:'Jogínka a pejskařka. Ráno jóga, dopoledne procházka s Lolou.', walkKm:2 },
+        { id:10, name:'Jakub Horák', initials:'JH', age:45, city:'Liberec', distance:8.9, dog:'Argo', breed:'Rhodéský ridgeback', size:'velky', sizeLabel:'Velký', temperament:'klidny', tempLabel:'Klidný', available:false, times:['Večer'], gradient: gradients[9], bio:'Chodíme min. 10 km denně. Hledám stejně aktivní parťáky.', walkKm:10 },
+        { id:11, name:'Tereza Pokorná', initials:'TP', age:22, city:'České Budějovice', distance:9.5, dog:'Daisy', breed:'Český fousek', size:'stredni', sizeLabel:'Střední', temperament:'smisena', tempLabel:'Smíšená', available:true, times:['Ráno','Odpoledne'], gradient: gradients[10], bio:'Studentka a dobrovolnice v útulku. Psi jsou můj život!', walkKm:7 },
+        { id:12, name:'Pavel Novotný', initials:'PN', age:50, city:'Pardubice', distance:6.1, dog:'Bary', breed:'Jezevčík', size:'maly', sizeLabel:'Malý', temperament:'klidny', tempLabel:'Klidný', available:true, times:['Dopoledne','Večer'], gradient: gradients[11], bio:'Stará garda. Chodím s Barym po nábřeží Labe každý den.', walkKm:3 },
     ];
 
     // Load/save state
@@ -1277,7 +1320,7 @@
             const tempBadgeCls = p.temperament === 'hravy' ? 'badge-playful' : p.temperament === 'klidny' ? 'badge-calm' : 'badge-mixed';
 
             grid.innerHTML += `
-                <div class="discover-card" id="card-${p.id}">
+                <div class="discover-card" id="card-${p.id}" onclick="openProfileModal(${p.id})" style="cursor:pointer;">
                     <div class="card-top">
                         <div class="card-avatar" style="background:${p.gradient};">${p.initials}</div>
                         <div>
@@ -1295,8 +1338,8 @@
                         </div>
                     </div>
                     <div class="card-actions">
-                        <button class="card-action-btn btn-skip" onclick="skipProfile(${p.id})">✕ Přeskočit</button>
-                        <button class="card-action-btn btn-match" onclick="matchProfile(${p.id})">❤️ Spojit</button>
+                        <button class="card-action-btn btn-skip" onclick="event.stopPropagation();skipProfile(${p.id})">✕ Přeskočit</button>
+                        <button class="card-action-btn btn-match" onclick="event.stopPropagation();matchProfile(${p.id})">❤️ Spojit</button>
                     </div>
                 </div>
             `;
@@ -1344,6 +1387,38 @@
     function closeMatchOverlay() {
         document.getElementById('matchOverlay').classList.remove('visible');
     }
+
+    // ===== PROFILE DETAIL MODAL =====
+    function openProfileModal(id) {
+        var p = profiles.find(function(x){ return x.id === id; });
+        if (!p) return;
+        document.getElementById('pmAvatar').style.background = p.gradient;
+        document.getElementById('pmAvatar').textContent = p.initials;
+        document.getElementById('pmName').textContent = p.name;
+        document.getElementById('pmMeta').textContent = p.age + ' let · ' + p.city + ' · ' + p.distance + ' km od tebe';
+        document.getElementById('pmBio').textContent = p.bio || 'Rád/a chodím na procházky se svým psem. Hledám parťáka do okolí!';
+        document.getElementById('pmDogName').textContent = p.dog;
+        document.getElementById('pmDogInfo').textContent = p.breed + ' · ' + p.sizeLabel + ' · ' + p.tempLabel;
+        var badges = '';
+        if (p.available) badges += '<span class="badge badge-available">Dostupný dnes</span>';
+        p.times.forEach(function(t){ badges += '<span class="badge badge-time">' + t + '</span>'; });
+        badges += '<span class="badge badge-size">Procházka ' + p.walkKm + ' km</span>';
+        document.getElementById('pmBadges').innerHTML = badges;
+        // Message button
+        var msgBtn = document.getElementById('pmMsgBtn');
+        msgBtn.onclick = function() {
+            closeProfileModal();
+            matchProfile(id);
+            switchTab('messages');
+        };
+        document.getElementById('profileModal').classList.add('visible');
+    }
+    function closeProfileModal() {
+        document.getElementById('profileModal').classList.remove('visible');
+    }
+    document.getElementById('profileModal').addEventListener('click', function(e) {
+        if (e.target === this) closeProfileModal();
+    });
 
     // ===== MATCHES TAB =====
     function renderMatches() {
