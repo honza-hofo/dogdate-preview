@@ -1,0 +1,13 @@
+# Prevent directory listing
+Options -Indexes
+
+# Protect data directory (except uploads)
+RewriteEngine On
+
+# Block direct access to database files
+RewriteRule ^data/dogdate\.db$ - [F,L]
+RewriteRule ^data/dogdate\.db-wal$ - [F,L]
+RewriteRule ^data/dogdate\.db-shm$ - [F,L]
+
+# Allow uploads to be served
+RewriteRule ^data/uploads/ - [L]

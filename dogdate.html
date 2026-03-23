@@ -403,6 +403,7 @@
                 <li><a href="dogdate.html" class="active">DogDate</a></li>
             </ul>
             <div class="header-right">
+                <a href="dogdate-registrace.html" class="btn-club" id="headerLoginBtn" style="font-size:11px; padding:10px 20px;">Přihlásit se</a>
                 <button class="burger-menu" id="burgerMenu" aria-label="Menu">
                     <span></span><span></span><span></span>
                 </button>
@@ -418,6 +419,7 @@
         <a href="kalendar.html">Kalendář</a>
         <a href="makej2026.html">Makej 2026</a>
         <a href="dogdate.html" class="active">DogDate</a>
+        <a href="dogdate-registrace.html" class="btn-club-mobile" id="mobileLoginBtn">Přihlásit se</a>
     </nav>
 
     <!-- HERO -->
@@ -698,6 +700,7 @@
     </footer>
 
     <script>
+    const API_BASE = '/api';
     const burgerMenu = document.getElementById('burgerMenu');
     const mobileNav = document.getElementById('mobileNav');
     const mobileNavOverlay = document.getElementById('mobileNavOverlay');
@@ -720,6 +723,26 @@
     }
     burgerMenu.addEventListener('click', toggleMobileMenu);
     mobileNavOverlay.addEventListener('click', toggleMobileMenu);
+
+    // Check if user is logged in and update header buttons
+    (async function() {
+        try {
+            var res = await fetch(API_BASE + '/auth.php?action=me', { credentials: 'include' });
+            var data = await res.json();
+            if (data.success && data.user) {
+                var headerBtn = document.getElementById('headerLoginBtn');
+                var mobileBtn = document.getElementById('mobileLoginBtn');
+                if (headerBtn) {
+                    headerBtn.textContent = 'Moje aplikace';
+                    headerBtn.href = 'dogdate-app.html';
+                }
+                if (mobileBtn) {
+                    mobileBtn.textContent = 'Moje aplikace';
+                    mobileBtn.href = 'dogdate-app.html';
+                }
+            }
+        } catch(e) {}
+    })();
     </script>
     <script src="cookie-consent.js"></script>
 </body>

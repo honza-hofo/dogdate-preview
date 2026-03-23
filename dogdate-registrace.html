@@ -157,6 +157,7 @@
         .form-group input[type="text"],
         .form-group input[type="number"],
         .form-group input[type="email"],
+        .form-group input[type="password"],
         .form-group select,
         .form-group textarea {
             width: 100%;
@@ -569,6 +570,21 @@
                 </div>
 
                 <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="userEmail" placeholder="tvuj@email.cz" autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label>Heslo</label>
+                    <input type="password" id="userPassword" placeholder="Minimálně 6 znaků" autocomplete="new-password">
+                </div>
+
+                <div class="form-group">
+                    <label>Potvrzení hesla</label>
+                    <input type="password" id="userPasswordConfirm" placeholder="Zadej heslo znovu" autocomplete="new-password">
+                </div>
+
+                <div class="form-group">
                     <label>Věk</label>
                     <input type="number" id="userAge" placeholder="Tvůj věk" min="16" max="99">
                 </div>
@@ -582,6 +598,10 @@
                     <label>Bio</label>
                     <textarea id="userBio" placeholder="Napiš něco o sobě a o tom, jak rád/a trávíš čas se psem..." maxlength="150"></textarea>
                     <div class="char-count"><span id="bioCount">0</span>/150</div>
+                </div>
+
+                <div class="form-group">
+                    <p style="font-size:13px; color:#888; text-align:center;">Už máš účet? <a href="#" onclick="showLogin(); return false;" style="color:#E30A14; font-weight:600; text-decoration:underline;">Přihlásit se</a></p>
                 </div>
 
                 <div class="form-buttons">
@@ -788,28 +808,53 @@
         </div>
     </footer>
 
+    <!-- LOGIN MODAL -->
+    <div class="success-overlay" id="loginModal" style="display:none;">
+        <div class="success-card" style="text-align:left;">
+            <div style="text-align:center; margin-bottom:24px;">
+                <span style="font-size:48px; display:block; margin-bottom:12px;">🐾</span>
+                <h2 style="font-family:'Montserrat',sans-serif; font-size:24px; font-weight:800; color:#222;">Přihlášení</h2>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="tvuj@email.cz" autocomplete="email">
+            </div>
+            <div class="form-group">
+                <label>Heslo</label>
+                <input type="password" id="loginPassword" placeholder="Tvoje heslo" autocomplete="current-password">
+            </div>
+            <div id="loginError" style="display:none; font-size:13px; color:#E30A14; background:rgba(227,10,20,0.06); padding:10px 14px; border-radius:8px; margin-bottom:16px; font-weight:500;"></div>
+            <div class="form-buttons" style="margin-top:20px;">
+                <button class="btn btn-secondary" onclick="closeLogin()">Zrušit</button>
+                <button class="btn btn-primary" id="loginBtn" onclick="doLogin()">Přihlásit se</button>
+            </div>
+            <p style="text-align:center; margin-top:16px; font-size:13px; color:#888;">Nemáš účet? <a href="#" onclick="closeLogin(); return false;" style="color:#E30A14; font-weight:600; text-decoration:underline;">Zaregistruj se</a></p>
+        </div>
+    </div>
+
     <script>
+    const API_BASE = '/api';
+
     // Photo preview with compression
-    // Max 300x300px, JPEG quality 0.6 → ~20-40 KB per photo
     function previewPhoto(input, containerId) {
         var container = document.getElementById(containerId);
         if (input.files && input.files[0]) {
             var file = input.files[0];
-            // Check max 10 MB input
             if (file.size > 10 * 1024 * 1024) {
                 alert('Fotka je příliš velká. Maximální velikost je 10 MB.');
                 return;
             }
+            // Store the raw file for FormData upload
+            container.dataset.hasFile = '1';
+            container._rawFile = file;
             var reader = new FileReader();
             reader.onload = function(e) {
                 var origImg = new Image();
                 origImg.onload = function() {
-                    // Compress: resize to max 300x300 and convert to JPEG
                     var canvas = document.createElement('canvas');
                     var maxSize = 300;
                     var w = origImg.width;
                     var h = origImg.height;
-                    // Crop to square (center crop)
                     var cropSize = Math.min(w, h);
                     var sx = (w - cropSize) / 2;
                     var sy = (h - cropSize) / 2;
@@ -817,20 +862,14 @@
                     canvas.height = maxSize;
                     var ctx = canvas.getContext('2d');
                     ctx.drawImage(origImg, sx, sy, cropSize, cropSize, 0, 0, maxSize, maxSize);
-                    // Convert to JPEG at 60% quality (~20-40 KB)
                     var compressed = canvas.toDataURL('image/jpeg', 0.6);
-                    // Show preview
                     var existing = container.querySelector('img');
                     if (existing) existing.remove();
                     var img = document.createElement('img');
                     img.src = compressed;
                     container.insertBefore(img, container.firstChild);
                     container.classList.add('has-photo');
-                    // Store compressed data for later upload
                     container.dataset.compressed = compressed;
-                    // Show size info
-                    var sizeKB = Math.round(compressed.length * 0.75 / 1024);
-                    console.log('Compressed photo: ' + sizeKB + ' KB');
                 };
                 origImg.src = e.target.result;
             };
@@ -867,8 +906,22 @@
         document.getElementById('bioCount').textContent = this.value.length;
     });
 
-    // Step navigation
+    // Step navigation with validation
     function goToStep2() {
+        var name = document.getElementById('userName').value.trim();
+        var email = document.getElementById('userEmail').value.trim();
+        var password = document.getElementById('userPassword').value;
+        var passwordConfirm = document.getElementById('userPasswordConfirm').value;
+        var age = document.getElementById('userAge').value;
+        var city = document.getElementById('userCity').value.trim();
+
+        if (!name) { alert('Vyplň prosím jméno.'); return; }
+        if (!email || !email.includes('@')) { alert('Vyplň prosím platný email.'); return; }
+        if (password.length < 6) { alert('Heslo musí mít alespoň 6 znaků.'); return; }
+        if (password !== passwordConfirm) { alert('Hesla se neshodují.'); return; }
+        if (!age || age < 15 || age > 99) { alert('Vyplň prosím platný věk.'); return; }
+        if (!city) { alert('Vyplň prosím město.'); return; }
+
         document.getElementById('step1').classList.remove('active');
         document.getElementById('step2').classList.add('active');
         document.getElementById('progCircle1').classList.remove('active');
@@ -911,8 +964,66 @@
         el.classList.toggle('checked', input.checked);
     }
 
-    // Submit
-    function submitForm() {
+    // Login modal
+    function showLogin() {
+        document.getElementById('loginModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        document.getElementById('loginEmail').focus();
+    }
+    function closeLogin() {
+        document.getElementById('loginModal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+    // Close on overlay click
+    document.getElementById('loginModal').addEventListener('click', function(e) {
+        if (e.target === this) closeLogin();
+    });
+    // Enter key in login form
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && document.getElementById('loginModal').style.display === 'flex') {
+            doLogin();
+        }
+    });
+
+    async function doLogin() {
+        var email = document.getElementById('loginEmail').value.trim();
+        var password = document.getElementById('loginPassword').value;
+        var errorEl = document.getElementById('loginError');
+        var btn = document.getElementById('loginBtn');
+
+        if (!email || !password) {
+            errorEl.textContent = 'Vyplň email a heslo.';
+            errorEl.style.display = 'block';
+            return;
+        }
+        errorEl.style.display = 'none';
+        btn.textContent = 'Přihlašuji...';
+        btn.disabled = true;
+
+        try {
+            var res = await fetch(API_BASE + '/auth.php?action=login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ email: email, password: password })
+            });
+            var data = await res.json();
+            if (data.success) {
+                window.location.href = 'dogdate-app.html';
+            } else {
+                errorEl.textContent = data.message || 'Přihlášení se nezdařilo.';
+                errorEl.style.display = 'block';
+            }
+        } catch (err) {
+            errorEl.textContent = 'Chyba připojení k serveru. Zkuste to znovu.';
+            errorEl.style.display = 'block';
+        }
+        btn.textContent = 'Přihlásit se';
+        btn.disabled = false;
+    }
+
+    // Submit registration to API
+    async function submitForm() {
         const gdprChecked = document.getElementById('checkGdpr').checked;
         const termsChecked = document.getElementById('checkTerms').checked;
         const errorEl = document.getElementById('consentError');
@@ -923,9 +1034,111 @@
             return;
         }
         errorEl.style.display = 'none';
-        document.getElementById('successOverlay').classList.add('visible');
-        document.body.style.overflow = 'hidden';
+
+        // Collect all data
+        var name = document.getElementById('userName').value.trim();
+        var email = document.getElementById('userEmail').value.trim();
+        var password = document.getElementById('userPassword').value;
+        var age = parseInt(document.getElementById('userAge').value) || 0;
+        var city = document.getElementById('userCity').value.trim();
+        var bio = document.getElementById('userBio').value.trim();
+
+        var dogName = document.getElementById('dogName').value.trim();
+        var dogBreed = document.getElementById('dogBreed').value;
+        var sizeEl = document.querySelector('#sizeSelector .visual-option.selected');
+        var dogSize = sizeEl ? sizeEl.dataset.value : 'stredni';
+        var tempEl = document.querySelector('#temperamentSelector .visual-option.selected');
+        var dogPersonality = tempEl ? tempEl.dataset.value : 'smisena';
+        var dogWalkDistance = parseInt(document.getElementById('walkDistance').value) || 5;
+
+        var availability = [];
+        document.querySelectorAll('.checkbox-grid input[type="checkbox"]:checked').forEach(function(cb) {
+            availability.push(cb.value);
+        });
+
+        // Validate dog name
+        if (!dogName) { alert('Vyplň prosím jméno psa.'); return; }
+
+        // Show loading
+        var submitBtn = document.querySelector('#step2 .btn-primary');
+        var origText = submitBtn.textContent;
+        submitBtn.textContent = 'Registruji...';
+        submitBtn.disabled = true;
+
+        try {
+            var res = await fetch(API_BASE + '/auth.php?action=register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    password: password,
+                    age: age,
+                    city: city,
+                    bio: bio,
+                    dog_name: dogName,
+                    dog_breed: dogBreed,
+                    dog_size: dogSize,
+                    dog_personality: dogPersonality,
+                    dog_walk_distance: dogWalkDistance,
+                    availability: availability
+                })
+            });
+            var data = await res.json();
+
+            if (data.success) {
+                // Upload avatar if selected
+                var userPhotoEl = document.getElementById('userPhoto');
+                if (userPhotoEl._rawFile) {
+                    try {
+                        var fd = new FormData();
+                        fd.append('avatar', userPhotoEl._rawFile);
+                        await fetch(API_BASE + '/profile-update.php?action=upload_avatar', {
+                            method: 'POST',
+                            credentials: 'include',
+                            body: fd
+                        });
+                    } catch(e) { console.log('Avatar upload failed:', e); }
+                }
+                // Upload dog photo if selected
+                var dogPhotoEl = document.getElementById('dogPhoto');
+                if (dogPhotoEl._rawFile && data.user && data.user.dogs && data.user.dogs.length > 0) {
+                    try {
+                        var fd2 = new FormData();
+                        fd2.append('photo', dogPhotoEl._rawFile);
+                        fd2.append('dog_id', data.user.dogs[0].id);
+                        await fetch(API_BASE + '/profile-update.php?action=upload_dog_photo', {
+                            method: 'POST',
+                            credentials: 'include',
+                            body: fd2
+                        });
+                    } catch(e) { console.log('Dog photo upload failed:', e); }
+                }
+
+                // Show success and redirect
+                document.getElementById('successOverlay').classList.add('visible');
+                document.body.style.overflow = 'hidden';
+            } else {
+                alert(data.message || 'Registrace se nezdařila. Zkuste to znovu.');
+            }
+        } catch (err) {
+            alert('Chyba připojení k serveru. Zkuste to znovu.');
+        }
+        submitBtn.textContent = origText;
+        submitBtn.disabled = false;
     }
+
+    // Check if already logged in
+    (async function() {
+        try {
+            var res = await fetch(API_BASE + '/auth.php?action=me', { credentials: 'include' });
+            var data = await res.json();
+            if (data.success && data.user) {
+                window.location.href = 'dogdate-app.html';
+            }
+        } catch(e) {}
+    })();
     </script>
     <script src="cookie-consent.js"></script>
 </body>

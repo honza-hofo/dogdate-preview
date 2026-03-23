@@ -1053,13 +1053,19 @@
                     <div style="display: flex; flex-direction: column; gap: 12px;">
                         <a href="dogdate-podminky.html" style="font-size: 14px; color: #E30A14; text-decoration: underline; font-weight: 500;">Zásady ochrany osobních údajů</a>
                         <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px;">
-                            <button class="profile-edit-btn" style="border-color: #E30A14; color: #E30A14;" onclick="if(confirm('Opravdu chcete požádat o výmaz účtu? Všechna vaše data budou nenávratně smazána.')){alert('Vaše žádost o výmaz účtu byla odeslána. Účet bude smazán do 30 dní. Potvrzení obdržíte na email.');}">
+                            <button class="profile-edit-btn" style="border-color: #E30A14; color: #E30A14;" onclick="doDeleteAccount()">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                 Požádat o výmaz účtu
                             </button>
-                            <button class="profile-edit-btn" onclick="alert('Vaše data budou připravena ke stažení. Odkaz vám zašleme na email.');">
+                            <button class="profile-edit-btn" onclick="doExportData()">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                 Stáhnout moje data
+                            </button>
+                        </div>
+                        <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #eee;">
+                            <button class="profile-edit-btn" style="width:100%; justify-content:center; border-color:#999; color:#999;" onclick="doLogout()">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                                Odhlásit se
                             </button>
                         </div>
                     </div>
@@ -1161,6 +1167,8 @@
     </footer>
 
     <script>
+    const API_BASE = '/api';
+
     // ===== BURGER MENU =====
     const burgerMenu = document.getElementById('burgerMenu');
     const mobileNav = document.getElementById('mobileNav');
@@ -1185,7 +1193,7 @@
     burgerMenu.addEventListener('click', toggleMobileMenu);
     mobileNavOverlay.addEventListener('click', toggleMobileMenu);
 
-    // ===== MOCK DATA =====
+    // ===== HELPERS =====
     const gradients = [
         'linear-gradient(135deg, #E30A14, #ff6b6b)',
         'linear-gradient(135deg, #2980b9, #3498db)',
@@ -1200,187 +1208,233 @@
         'linear-gradient(135deg, #f1c40f, #f39c12)',
         'linear-gradient(135deg, #1abc9c, #2ecc71)',
     ];
+    function getGradient(id) { return gradients[(id || 0) % gradients.length]; }
+    function formatTime(dateStr) {
+        if (!dateStr) return '';
+        var d = new Date(dateStr);
+        return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    }
+    function escapeHtml(s) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(s || ''));
+        return div.innerHTML;
+    }
 
-    const profiles = [
-        { id:1, name:'Jana Nováková', initials:'JN', age:28, city:'Praha', distance:2.3, dog:'Max', breed:'Labrador', size:'velky', sizeLabel:'Velký', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Ráno','Odpoledne'], gradient: gradients[0], bio:'Miluji procházky po Stromovce a Letné. Hledám parťáky na ranní venčení!', walkKm:5 },
-        { id:2, name:'Petr Svoboda', initials:'PS', age:35, city:'Praha', distance:1.8, dog:'Buddy', breed:'Border kolie', size:'stredni', sizeLabel:'Střední', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Dopoledne','Večer'], gradient: gradients[1], bio:'Běhám se psem každé ráno. Rád potkávám nové lidi i psy.', walkKm:8 },
-        { id:3, name:'Lucie Veselá', initials:'LV', age:24, city:'Brno', distance:4.1, dog:'Bella', breed:'Zlatý retrívr', size:'velky', sizeLabel:'Velký', temperament:'klidny', tempLabel:'Klidný', available:false, times:['Odpoledne'], gradient: gradients[2], bio:'Studentka veteriny. Moje Bella potřebuje víc kamarádů na hraní!', walkKm:4 },
-        { id:4, name:'Martin Dvořák', initials:'MD', age:42, city:'Plzeň', distance:6.5, dog:'Rex', breed:'Německý ovčák', size:'velky', sizeLabel:'Velký', temperament:'klidny', tempLabel:'Klidný', available:true, times:['Ráno','Večer'], gradient: gradients[3], bio:'Aktivní táta se psem. Chodíme na túry každý víkend.', walkKm:10 },
-        { id:5, name:'Kateřina Procházková', initials:'KP', age:31, city:'Praha', distance:3.5, dog:'Chlupáč', breed:'Kokršpaněl', size:'stredni', sizeLabel:'Střední', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Dopoledne','Odpoledne'], gradient: gradients[4], bio:'Freelancerka s flexibilním časem. Chlupáč je můj nejlepší kolega.', walkKm:6 },
-        { id:6, name:'Tomáš Krejčí', initials:'TK', age:29, city:'Hradec Králové', distance:5.2, dog:'Fík', breed:'Jack Russell', size:'maly', sizeLabel:'Malý', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Ráno'], gradient: gradients[5], bio:'IT borec co potřebuje víc čerstvého vzduchu. Pomůžete?', walkKm:3 },
-        { id:7, name:'Eva Marková', initials:'EM', age:38, city:'Praha', distance:2.8, dog:'Teddy', breed:'Bígl', size:'stredni', sizeLabel:'Střední', temperament:'smisena', tempLabel:'Smíšená', available:false, times:['Odpoledne','Večer'], gradient: gradients[6], bio:'Máma dvou dětí a jednoho huňáče. Rádi chodíme do parku.', walkKm:4 },
-        { id:8, name:'David Černý', initials:'DC', age:26, city:'Olomouc', distance:7.3, dog:'Shadow', breed:'Husky', size:'velky', sizeLabel:'Velký', temperament:'hravy', tempLabel:'Hravý', available:true, times:['Ráno','Dopoledne'], gradient: gradients[7], bio:'Fotograf a outdoorový nadšenec. Můj pes je nejlepší model.', walkKm:10 },
-        { id:9, name:'Martina Šťastná', initials:'MŠ', age:33, city:'Praha', distance:1.2, dog:'Lola', breed:'Maltézák', size:'maly', sizeLabel:'Malý', temperament:'klidny', tempLabel:'Klidný', available:true, times:['Dopoledne','Odpoledne'], gradient: gradients[8], bio:'Jogínka a pejskařka. Ráno jóga, dopoledne procházka s Lolou.', walkKm:2 },
-        { id:10, name:'Jakub Horák', initials:'JH', age:45, city:'Liberec', distance:8.9, dog:'Argo', breed:'Rhodéský ridgeback', size:'velky', sizeLabel:'Velký', temperament:'klidny', tempLabel:'Klidný', available:false, times:['Večer'], gradient: gradients[9], bio:'Chodíme min. 10 km denně. Hledám stejně aktivní parťáky.', walkKm:10 },
-        { id:11, name:'Tereza Pokorná', initials:'TP', age:22, city:'České Budějovice', distance:9.5, dog:'Daisy', breed:'Český fousek', size:'stredni', sizeLabel:'Střední', temperament:'smisena', tempLabel:'Smíšená', available:true, times:['Ráno','Odpoledne'], gradient: gradients[10], bio:'Studentka a dobrovolnice v útulku. Psi jsou můj život!', walkKm:7 },
-        { id:12, name:'Pavel Novotný', initials:'PN', age:50, city:'Pardubice', distance:6.1, dog:'Bary', breed:'Jezevčík', size:'maly', sizeLabel:'Malý', temperament:'klidny', tempLabel:'Klidný', available:true, times:['Dopoledne','Večer'], gradient: gradients[11], bio:'Stará garda. Chodím s Barym po nábřeží Labe každý den.', walkKm:3 },
-    ];
+    async function apiFetch(url, opts) {
+        opts = opts || {};
+        opts.credentials = 'include';
+        var res = await fetch(API_BASE + url, opts);
+        return await res.json();
+    }
 
-    // Load/save state
-    function getState() {
+    // ===== STATE =====
+    let currentUser = null;
+    let profilesCache = [];
+    let matchesCache = [];
+    let conversationsCache = [];
+    let skippedIds = [];
+    try { skippedIds = JSON.parse(localStorage.getItem('dogdate_skipped') || '[]'); } catch(e) { skippedIds = []; }
+    let currentChatMatchId = null;
+    let chatRefreshTimer = null;
+
+    // ===== AUTH CHECK =====
+    async function checkAuth() {
         try {
-            return JSON.parse(localStorage.getItem('walkmate_state')) || { matched: [1,5,9], skipped: [], messages: {} };
+            var data = await apiFetch('/auth.php?action=me');
+            if (data.success && data.user) {
+                currentUser = data.user;
+                initApp();
+            } else {
+                window.location.href = 'dogdate-registrace.html';
+            }
         } catch(e) {
-            return { matched: [1,5,9], skipped: [], messages: {} };
+            window.location.href = 'dogdate-registrace.html';
         }
     }
-    function saveState(s) {
-        try { localStorage.setItem('walkmate_state', JSON.stringify(s)); } catch(e) {}
+
+    var userLat = null;
+    var userLng = null;
+
+    async function initApp() {
+        renderProfile();
+        // Request GPS location
+        await requestLocation();
+        await loadProfiles();
+        renderDiscoverGrid();
+        loadMatches();
+        loadConversations();
+        renderMap();
     }
 
-    let state = getState();
-
-    // Init default messages
-    if (!state.messages[1]) {
-        state.messages[1] = [
-            { from: 1, text: 'Ahoj! Viděla jsem, že taky máš rád dlouhé procházky. Max je super kamarád!', time: '10:24' },
-            { from: 'me', text: 'Ahoj Jano! Jo, chodíme hlavně kolem Stromovky. Kam chodíte vy?', time: '10:30' },
-            { from: 1, text: 'My taky! Většinou Stromovka nebo Letná. Co zkusit společnou procházku?', time: '10:32' },
-            { from: 'me', text: 'To zní skvěle! Co třeba zítra odpoledne?', time: '10:35' },
-            { from: 1, text: 'Domluveno! Sejdeme se u vchodu do Stromovky ve 14:00?', time: '10:36' },
-        ];
+    async function requestLocation() {
+        if (!navigator.geolocation) return;
+        return new Promise(function(resolve) {
+            navigator.geolocation.getCurrentPosition(
+                async function(pos) {
+                    userLat = pos.coords.latitude;
+                    userLng = pos.coords.longitude;
+                    // Send to API
+                    try {
+                        await apiFetch('/profile-update.php?action=update_location', {
+                            method: 'POST',
+                            body: JSON.stringify({ latitude: userLat, longitude: userLng })
+                        });
+                    } catch(e) {}
+                    resolve();
+                },
+                function() { resolve(); }, // GPS denied - continue without
+                { timeout: 5000, maximumAge: 300000 } // 5s timeout, cache 5 min
+            );
+        });
     }
-    if (!state.messages[5]) {
-        state.messages[5] = [
-            { from: 5, text: 'Ahoj! Chlupáč by se rád seznámil s tvým psem! Chodíte někam na Praze 6?', time: '14:15' },
-            { from: 'me', text: 'Ahoj Kateřino! Občas chodíme do Divoké Šárky, to je super terén.', time: '14:20' },
-            { from: 5, text: 'Divoká Šárka je perfektní! Kdy byste mohli?', time: '14:22' },
-        ];
-    }
-    saveState(state);
-
-    // Match statuses
-    const matchStatuses = {
-        1: { label: 'Procházka naplánována', cls: 'status-planned' },
-        5: { label: 'Spojení potvrzeno', cls: 'status-confirmed' },
-        9: { label: 'Čeká na potvrzení', cls: 'status-pending' },
-    };
 
     // ===== TAB SWITCHING =====
     function switchTab(tab) {
-        // Deactivate all
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.bottom-nav-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
-        // Activate
         const tabMap = { discover:'Discover', matches:'Matches', messages:'Messages', map:'Map', profile:'Profile' };
-        const tabEl = document.getElementById('tab' + tabMap[tab]);
-        const bnEl = document.getElementById('bn' + tabMap[tab]);
-        const contentEl = document.getElementById('content' + tabMap[tab]);
+        var tabEl = document.getElementById('tab' + tabMap[tab]);
+        var bnEl = document.getElementById('bn' + tabMap[tab]);
+        var contentEl = document.getElementById('content' + tabMap[tab]);
         if (tabEl) tabEl.classList.add('active');
         if (bnEl) bnEl.classList.add('active');
         if (contentEl) contentEl.classList.add('active');
 
-        // Reset chat view when switching to messages
         if (tab === 'messages') {
             document.getElementById('convoList').style.display = '';
             document.getElementById('chatView').classList.remove('active');
+            stopChatRefresh();
+            loadConversations();
         }
+        if (tab === 'matches') loadMatches();
+        if (tab === 'discover') loadProfiles().then(renderDiscoverGrid);
     }
 
     // ===== DISCOVER TAB =====
     let currentSizeFilter = 'all';
     let currentAvailFilter = 'all';
-    let currentDistanceFilter = 10;
 
     function updateFilterDistance() {
-        currentDistanceFilter = parseInt(document.getElementById('filterDistance').value);
-        document.getElementById('filterDistanceVal').textContent = currentDistanceFilter + ' km';
-        renderDiscoverGrid();
+        document.getElementById('filterDistanceVal').textContent = document.getElementById('filterDistance').value + ' km';
+        loadProfiles().then(renderDiscoverGrid);
     }
 
     function filterSize(size) {
         currentSizeFilter = size;
         document.querySelectorAll('#sizeFilter .filter-btn').forEach(b => b.classList.remove('active'));
         document.querySelector('#sizeFilter [data-size="'+size+'"]').classList.add('active');
-        renderDiscoverGrid();
+        loadProfiles().then(renderDiscoverGrid);
     }
 
     function filterAvail(avail) {
         currentAvailFilter = avail;
         document.querySelectorAll('#availFilter .filter-btn').forEach(b => b.classList.remove('active'));
         document.querySelector('#availFilter [data-avail="'+avail+'"]').classList.add('active');
-        renderDiscoverGrid();
+        loadProfiles().then(renderDiscoverGrid);
+    }
+
+    async function loadProfiles() {
+        var params = [];
+        if (currentSizeFilter !== 'all') params.push('size=' + currentSizeFilter);
+        if (currentAvailFilter === 'dnes') params.push('available=1');
+        var maxDist = document.getElementById('filterDistance') ? document.getElementById('filterDistance').value : 10;
+        params.push('max_distance=' + maxDist);
+        // Add GPS coordinates for distance-based search
+        if (userLat && userLng) {
+            params.push('lat=' + userLat);
+            params.push('lng=' + userLng);
+            params.push('radius=' + maxDist);
+        }
+        var qs = params.length ? '?' + params.join('&') : '';
+        try {
+            var data = await apiFetch('/profiles.php' + qs);
+            if (data.success) profilesCache = data.profiles;
+        } catch(e) {
+            console.log('Chyba načítání profilů:', e);
+        }
     }
 
     function renderDiscoverGrid() {
-        const grid = document.getElementById('discoverGrid');
+        var grid = document.getElementById('discoverGrid');
         grid.innerHTML = '';
-        const state = getState();
+        var matchedIds = matchesCache.map(m => m.partner_id);
+        var count = 0;
 
-        profiles.forEach(p => {
-            // Skip matched and skipped
-            if (state.matched.includes(p.id) || state.skipped.includes(p.id)) return;
-            // Filter
-            if (currentSizeFilter !== 'all' && p.size !== currentSizeFilter) return;
-            if (currentAvailFilter === 'dnes' && !p.available) return;
-            if (p.distance > currentDistanceFilter) return;
+        profilesCache.forEach(function(p) {
+            if (skippedIds.includes(p.id) || matchedIds.includes(p.id)) return;
+            count++;
+            var dog = p.dogs && p.dogs[0] ? p.dogs[0] : {};
+            var gradient = getGradient(p.id);
+            var tempBadgeCls = dog.personality === 'hravy' ? 'badge-playful' : dog.personality === 'klidny' ? 'badge-calm' : 'badge-mixed';
+            var tempLabel = dog.personality_label || '';
+            var sizeLabel = dog.size_label || '';
+            var timeBadges = (p.availability_labels || []).map(function(t){ return '<span class="badge badge-time">' + escapeHtml(t) + '</span>'; }).join('');
 
-            const tempBadgeCls = p.temperament === 'hravy' ? 'badge-playful' : p.temperament === 'klidny' ? 'badge-calm' : 'badge-mixed';
-
-            grid.innerHTML += `
-                <div class="discover-card" id="card-${p.id}" onclick="openProfileModal(${p.id})" style="cursor:pointer;">
-                    <div class="card-top">
-                        <div class="card-avatar" style="background:${p.gradient};">${p.initials}</div>
-                        <div>
-                            <div class="card-name">${p.name}</div>
-                            <div class="card-meta">${p.age} let &middot; ${p.city} &middot; ${p.distance} km</div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="card-dog">🐕 <strong>${p.dog}</strong> &middot; ${p.breed}</div>
-                        <div class="card-badges">
-                            <span class="badge badge-size">${p.sizeLabel}</span>
-                            <span class="badge ${tempBadgeCls}">${p.tempLabel}</span>
-                            ${p.available ? '<span class="badge badge-available">Dostupný dnes</span>' : ''}
-                            ${p.times.map(t => '<span class="badge badge-time">' + t + '</span>').join('')}
-                        </div>
-                    </div>
-                    <div class="card-actions">
-                        <button class="card-action-btn btn-skip" onclick="event.stopPropagation();skipProfile(${p.id})">✕ Přeskočit</button>
-                        <button class="card-action-btn btn-match" onclick="event.stopPropagation();matchProfile(${p.id})">❤️ Spojit</button>
-                    </div>
-                </div>
-            `;
+            grid.innerHTML += '<div class="discover-card" id="card-' + p.id + '" onclick="openProfileModal(' + p.id + ')" style="cursor:pointer;">' +
+                '<div class="card-top">' +
+                    '<div class="card-avatar" style="background:' + gradient + ';">' + escapeHtml(p.initials) + '</div>' +
+                    '<div>' +
+                        '<div class="card-name">' + escapeHtml(p.name) + '</div>' +
+                        '<div class="card-meta">' + p.age + ' let &middot; ' + escapeHtml(p.city) + (p.distance_km !== null ? ' &middot; ' + p.distance_km + ' km' : '') + '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="card-body">' +
+                    '<div class="card-dog">🐕 <strong>' + escapeHtml(dog.name || '') + '</strong> &middot; ' + escapeHtml(dog.breed || '') + '</div>' +
+                    '<div class="card-badges">' +
+                        '<span class="badge badge-size">' + escapeHtml(sizeLabel) + '</span>' +
+                        '<span class="badge ' + tempBadgeCls + '">' + escapeHtml(tempLabel) + '</span>' +
+                        (p.is_available_today ? '<span class="badge badge-available">Dostupný dnes</span>' : '') +
+                        timeBadges +
+                    '</div>' +
+                '</div>' +
+                '<div class="card-actions">' +
+                    '<button class="card-action-btn btn-skip" onclick="event.stopPropagation();skipProfile(' + p.id + ')">✕ Přeskočit</button>' +
+                    '<button class="card-action-btn btn-match" onclick="event.stopPropagation();matchProfile(' + p.id + ')">❤️ Spojit</button>' +
+                '</div>' +
+            '</div>';
         });
 
-        if (!grid.innerHTML.trim()) {
+        if (count === 0) {
             grid.innerHTML = '<div class="empty-state"><span class="empty-icon">🐾</span><p>Žádné profily k zobrazení. Zkuste změnit filtry.</p></div>';
         }
     }
 
-    function matchProfile(id) {
-        const s = getState();
-        if (!s.matched.includes(id)) {
-            s.matched.push(id);
-            matchStatuses[id] = { label: 'Čeká na potvrzení', cls: 'status-pending' };
+    async function matchProfile(id) {
+        var p = profilesCache.find(function(x){ return x.id === id; });
+        var btn = document.querySelector('#card-' + id + ' .btn-match');
+        if (btn) { btn.textContent = '...'; btn.disabled = true; }
+
+        try {
+            var data = await apiFetch('/matches.php?action=create&user_id=' + id, { method: 'POST' });
+            if (data.success) {
+                if (p) {
+                    document.getElementById('matchText').textContent = 'Vy a ' + p.name + ' jste si padli do oka!';
+                }
+                document.getElementById('matchOverlay').classList.add('visible');
+                await loadMatches();
+                renderDiscoverGrid();
+                updateBadges();
+            } else {
+                alert(data.message || 'Nepodařilo se vytvořit spojení.');
+            }
+        } catch(e) {
+            alert('Chyba připojení k serveru.');
         }
-        saveState(s);
-        state = s;
-
-        // Show overlay
-        const p = profiles.find(x => x.id === id);
-        document.getElementById('matchText').textContent = 'Vy a ' + p.name + ' jste si padli do oka!';
-        document.getElementById('matchOverlay').classList.add('visible');
-
-        renderDiscoverGrid();
-        renderMatches();
-        updateBadges();
+        if (btn) { btn.textContent = '❤️ Spojit'; btn.disabled = false; }
     }
 
     function skipProfile(id) {
-        const s = getState();
-        if (!s.skipped.includes(id)) s.skipped.push(id);
-        saveState(s);
-        state = s;
+        if (!skippedIds.includes(id)) skippedIds.push(id);
+        try { localStorage.setItem('dogdate_skipped', JSON.stringify(skippedIds)); } catch(e) {}
 
-        const card = document.getElementById('card-' + id);
+        var card = document.getElementById('card-' + id);
         if (card) {
             card.style.transition = 'opacity 0.3s, transform 0.3s';
             card.style.opacity = '0';
             card.style.transform = 'scale(0.9)';
-            setTimeout(() => renderDiscoverGrid(), 300);
+            setTimeout(renderDiscoverGrid, 300);
         }
     }
 
@@ -1390,26 +1444,27 @@
 
     // ===== PROFILE DETAIL MODAL =====
     function openProfileModal(id) {
-        var p = profiles.find(function(x){ return x.id === id; });
+        var p = profilesCache.find(function(x){ return x.id === id; });
         if (!p) return;
-        document.getElementById('pmAvatar').style.background = p.gradient;
-        document.getElementById('pmAvatar').textContent = p.initials;
+        var dog = p.dogs && p.dogs[0] ? p.dogs[0] : {};
+        var gradient = getGradient(p.id);
+
+        document.getElementById('pmAvatar').style.background = gradient;
+        document.getElementById('pmAvatar').textContent = p.initials || '';
         document.getElementById('pmName').textContent = p.name;
-        document.getElementById('pmMeta').textContent = p.age + ' let · ' + p.city + ' · ' + p.distance + ' km od tebe';
+        document.getElementById('pmMeta').textContent = p.age + ' let · ' + p.city;
         document.getElementById('pmBio').textContent = p.bio || 'Rád/a chodím na procházky se svým psem. Hledám parťáka do okolí!';
-        document.getElementById('pmDogName').textContent = p.dog;
-        document.getElementById('pmDogInfo').textContent = p.breed + ' · ' + p.sizeLabel + ' · ' + p.tempLabel;
+        document.getElementById('pmDogName').textContent = dog.name || '';
+        document.getElementById('pmDogInfo').textContent = (dog.breed || '') + ' · ' + (dog.size_label || '') + ' · ' + (dog.personality_label || '');
         var badges = '';
-        if (p.available) badges += '<span class="badge badge-available">Dostupný dnes</span>';
-        p.times.forEach(function(t){ badges += '<span class="badge badge-time">' + t + '</span>'; });
-        badges += '<span class="badge badge-size">Procházka ' + p.walkKm + ' km</span>';
+        if (p.is_available_today) badges += '<span class="badge badge-available">Dostupný dnes</span>';
+        (p.availability_labels || []).forEach(function(t){ badges += '<span class="badge badge-time">' + escapeHtml(t) + '</span>'; });
+        if (dog.walk_distance) badges += '<span class="badge badge-size">Procházka ' + dog.walk_distance + ' km</span>';
         document.getElementById('pmBadges').innerHTML = badges;
-        // Message button
         var msgBtn = document.getElementById('pmMsgBtn');
         msgBtn.onclick = function() {
             closeProfileModal();
             matchProfile(id);
-            switchTab('messages');
         };
         document.getElementById('profileModal').classList.add('visible');
     }
@@ -1421,178 +1476,327 @@
     });
 
     // ===== MATCHES TAB =====
+    async function loadMatches() {
+        try {
+            var data = await apiFetch('/matches.php');
+            if (data.success) {
+                matchesCache = data.matches;
+                renderMatches();
+                updateBadges();
+            }
+        } catch(e) { console.log('Chyba načítání parťáků:', e); }
+    }
+
     function renderMatches() {
-        const s = getState();
-        const list = document.getElementById('matchesList');
+        var list = document.getElementById('matchesList');
         list.innerHTML = '';
 
-        s.matched.forEach(id => {
-            const p = profiles.find(x => x.id === id);
-            if (!p) return;
-            const status = matchStatuses[id] || { label: 'Čeká na potvrzení', cls: 'status-pending' };
-
-            list.innerHTML += `
-                <div class="match-item">
-                    <div class="match-avatar" style="background:${p.gradient};">${p.initials}</div>
-                    <div class="match-info">
-                        <div class="match-name">${p.name}</div>
-                        <div class="match-detail">${p.dog} (${p.breed}) &middot; ${p.city}</div>
-                    </div>
-                    <span class="match-status ${status.cls}">${status.label}</span>
-                    <button class="match-action-btn" onclick="switchTab('messages'); setTimeout(()=>openChat(${id}), 100);">Napsat zprávu</button>
-                </div>
-            `;
-        });
-
-        if (!list.innerHTML.trim()) {
+        if (matchesCache.length === 0) {
             list.innerHTML = '<div class="empty-state"><span class="empty-icon">💔</span><p>Zatím žádní parťáci. Začněte objevovat profily!</p></div>';
+            return;
         }
+
+        matchesCache.forEach(function(m) {
+            var gradient = getGradient(m.partner_id);
+            var statusMap = {
+                'pending': { label: 'Čeká na potvrzení', cls: 'status-pending' },
+                'confirmed': { label: 'Spojení potvrzeno', cls: 'status-confirmed' },
+                'walk_planned': { label: 'Procházka naplánována', cls: 'status-planned' },
+            };
+            var status = statusMap[m.status] || statusMap['pending'];
+            var confirmBtn = '';
+            if (m.status === 'pending' && !m.is_initiator) {
+                confirmBtn = '<button class="match-action-btn" style="border-color:#27ae60;color:#27ae60;" onclick="confirmMatch(' + m.id + ')">Potvrdit</button>';
+            }
+
+            list.innerHTML += '<div class="match-item">' +
+                '<div class="match-avatar" style="background:' + gradient + ';">' + escapeHtml(m.partner_initials) + '</div>' +
+                '<div class="match-info">' +
+                    '<div class="match-name">' + escapeHtml(m.partner_name) + '</div>' +
+                    '<div class="match-detail">' + escapeHtml(m.partner_dog || '') + (m.partner_breed ? ' (' + escapeHtml(m.partner_breed) + ')' : '') + ' &middot; ' + escapeHtml(m.partner_city) + '</div>' +
+                '</div>' +
+                '<span class="match-status ' + status.cls + '">' + status.label + '</span>' +
+                confirmBtn +
+                '<button class="match-action-btn" onclick="switchTab(\'messages\'); setTimeout(function(){openChatByMatchId(' + m.id + ')}, 200);">Napsat zprávu</button>' +
+            '</div>';
+        });
+    }
+
+    async function confirmMatch(matchId) {
+        try {
+            var data = await apiFetch('/matches.php?action=confirm&match_id=' + matchId, { method: 'POST' });
+            if (data.success) {
+                await loadMatches();
+            } else {
+                alert(data.message || 'Nepodařilo se potvrdit.');
+            }
+        } catch(e) { alert('Chyba připojení.'); }
     }
 
     // ===== MESSAGES TAB =====
-    function renderConversations() {
-        const s = getState();
-        const list = document.getElementById('convoList');
-        list.innerHTML = '';
-
-        const convoIds = Object.keys(s.messages).map(Number);
-        convoIds.forEach(id => {
-            const p = profiles.find(x => x.id === id);
-            if (!p) return;
-            const msgs = s.messages[id];
-            const last = msgs[msgs.length - 1];
-            const preview = last.from === 'me' ? 'Vy: ' + last.text : last.text;
-            const hasUnread = last.from !== 'me';
-
-            list.innerHTML += `
-                <div class="convo-item" onclick="openChat(${id})">
-                    <div class="convo-avatar" style="background:${p.gradient};">${p.initials}</div>
-                    <div class="convo-info">
-                        <div class="convo-name">${p.name}</div>
-                        <div class="convo-preview">${preview}</div>
-                    </div>
-                    <span class="convo-time">${last.time}</span>
-                    ${hasUnread ? '<div class="convo-unread"></div>' : ''}
-                </div>
-            `;
-        });
-
-        if (!list.innerHTML.trim()) {
-            list.innerHTML = '<div class="empty-state"><span class="empty-icon">💬</span><p>Zatím žádné zprávy.</p></div>';
-        }
+    async function loadConversations() {
+        try {
+            var data = await apiFetch('/messages.php?conversations=1');
+            if (data.success) {
+                conversationsCache = data.conversations;
+                renderConversations();
+                updateBadges();
+            }
+        } catch(e) { console.log('Chyba načítání konverzací:', e); }
     }
 
-    function openChat(id) {
-        const s = getState();
-        const p = profiles.find(x => x.id === id);
-        if (!p) return;
+    function renderConversations() {
+        var list = document.getElementById('convoList');
+        list.innerHTML = '';
+
+        if (conversationsCache.length === 0) {
+            list.innerHTML = '<div class="empty-state"><span class="empty-icon">💬</span><p>Zatím žádné zprávy. Najděte si parťáka a napište mu!</p></div>';
+            return;
+        }
+
+        conversationsCache.forEach(function(conv) {
+            var gradient = getGradient(conv.partner_id);
+            var preview = conv.last_message ? escapeHtml(conv.last_message) : 'Zatím žádné zprávy';
+            if (preview.length > 50) preview = preview.substring(0, 50) + '...';
+            var timeStr = conv.last_message_at ? formatTime(conv.last_message_at) : '';
+
+            list.innerHTML += '<div class="convo-item" onclick="openChatByMatchId(' + conv.match_id + ')">' +
+                '<div class="convo-avatar" style="background:' + gradient + ';">' + escapeHtml(conv.partner_initials) + '</div>' +
+                '<div class="convo-info">' +
+                    '<div class="convo-name">' + escapeHtml(conv.partner_name) + '</div>' +
+                    '<div class="convo-preview">' + preview + '</div>' +
+                '</div>' +
+                '<span class="convo-time">' + timeStr + '</span>' +
+            '</div>';
+        });
+    }
+
+    async function openChatByMatchId(matchId) {
+        currentChatMatchId = matchId;
+        var conv = conversationsCache.find(function(c){ return c.match_id === matchId; });
+        var partnerName = conv ? conv.partner_name : '';
+        var partnerInitials = conv ? conv.partner_initials : '';
+        var partnerDog = conv ? (conv.partner_dog || '') : '';
+        var gradient = conv ? getGradient(conv.partner_id) : gradients[0];
 
         document.getElementById('convoList').style.display = 'none';
-        const chatView = document.getElementById('chatView');
+        var chatView = document.getElementById('chatView');
         chatView.classList.add('active');
 
-        const msgs = s.messages[id] || [];
-        const msgsHTML = msgs.map(m => {
-            const cls = m.from === 'me' ? 'bubble-own' : 'bubble-other';
-            return `<div class="chat-bubble ${cls}">${m.text}<div class="bubble-time">${m.time}</div></div>`;
-        }).join('');
+        // Show loading
+        chatView.innerHTML = '<div class="chat-header">' +
+            '<button class="chat-back" onclick="closeChat()">&larr;</button>' +
+            '<div class="convo-avatar" style="background:' + gradient + '; width:40px; height:40px; font-size:13px;">' + escapeHtml(partnerInitials) + '</div>' +
+            '<div><div class="convo-name">' + escapeHtml(partnerName) + '</div>' +
+            '<div style="font-size:12px; color:#999;">' + escapeHtml(partnerDog) + '</div></div>' +
+        '</div>' +
+        '<div class="chat-messages" id="chatMsgs"><div class="empty-state" style="padding:40px;"><p>Načítám zprávy...</p></div></div>' +
+        '<div class="chat-input-bar">' +
+            '<input type="text" class="chat-input" id="chatInput" placeholder="Napište zprávu..." onkeydown="if(event.key===\'Enter\')sendMessage()">' +
+            '<button class="chat-send" onclick="sendMessage()">' +
+                '<svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>' +
+            '</button>' +
+        '</div>';
 
-        chatView.innerHTML = `
-            <div class="chat-header">
-                <button class="chat-back" onclick="closeChat()">&larr;</button>
-                <div class="convo-avatar" style="background:${p.gradient}; width:40px; height:40px; font-size:13px;">${p.initials}</div>
-                <div>
-                    <div class="convo-name">${p.name}</div>
-                    <div style="font-size:12px; color:#999;">${p.dog} &middot; ${p.city}</div>
-                </div>
-            </div>
-            <div class="chat-messages" id="chatMsgs">${msgsHTML}</div>
-            <div class="chat-input-bar">
-                <input type="text" class="chat-input" id="chatInput" placeholder="Napište zprávu..." onkeydown="if(event.key==='Enter')sendMessage(${id})">
-                <button class="chat-send" onclick="sendMessage(${id})">
-                    <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-                </button>
-            </div>
-        `;
+        await refreshChat();
+        startChatRefresh();
+    }
 
-        // Scroll to bottom
-        const chatMsgs = document.getElementById('chatMsgs');
-        chatMsgs.scrollTop = chatMsgs.scrollHeight;
+    async function refreshChat() {
+        if (!currentChatMatchId) return;
+        try {
+            var data = await apiFetch('/messages.php?match_id=' + currentChatMatchId);
+            if (data.success) {
+                var chatMsgs = document.getElementById('chatMsgs');
+                if (!chatMsgs) return;
+                if (data.messages.length === 0) {
+                    chatMsgs.innerHTML = '<div class="empty-state" style="padding:40px;"><p>Zatím žádné zprávy. Napište první!</p></div>';
+                } else {
+                    chatMsgs.innerHTML = data.messages.map(function(m) {
+                        var cls = m.is_mine ? 'bubble-own' : 'bubble-other';
+                        return '<div class="chat-bubble ' + cls + '">' + escapeHtml(m.content) + '<div class="bubble-time">' + formatTime(m.created_at) + '</div></div>';
+                    }).join('');
+                    chatMsgs.scrollTop = chatMsgs.scrollHeight;
+                }
+            }
+        } catch(e) { console.log('Chyba načítání zpráv:', e); }
+    }
+
+    function startChatRefresh() {
+        stopChatRefresh();
+        chatRefreshTimer = setInterval(refreshChat, 10000);
+    }
+    function stopChatRefresh() {
+        if (chatRefreshTimer) { clearInterval(chatRefreshTimer); chatRefreshTimer = null; }
     }
 
     function closeChat() {
+        stopChatRefresh();
+        currentChatMatchId = null;
         document.getElementById('convoList').style.display = '';
         document.getElementById('chatView').classList.remove('active');
+        loadConversations();
     }
 
-    function sendMessage(id) {
-        const input = document.getElementById('chatInput');
-        const text = input.value.trim();
-        if (!text) return;
-
-        const s = getState();
-        if (!s.messages[id]) s.messages[id] = [];
-        const now = new Date();
-        const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-        s.messages[id].push({ from: 'me', text: text, time: time });
-        saveState(s);
-        state = s;
+    async function sendMessage() {
+        var input = document.getElementById('chatInput');
+        var text = input.value.trim();
+        if (!text || !currentChatMatchId) return;
 
         input.value = '';
-        openChat(id);
+        input.disabled = true;
+
+        try {
+            var data = await apiFetch('/messages.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ match_id: currentChatMatchId, content: text })
+            });
+            if (data.success) {
+                await refreshChat();
+            } else {
+                alert(data.message || 'Zprávu se nepodařilo odeslat.');
+                input.value = text;
+            }
+        } catch(e) {
+            alert('Chyba připojení k serveru.');
+            input.value = text;
+        }
+        input.disabled = false;
+        input.focus();
+    }
+
+    // Alias for opening chat from matches by match_id lookup
+    function openChat(partnerId) {
+        var match = matchesCache.find(function(m){ return m.partner_id === partnerId; });
+        if (match) openChatByMatchId(match.id);
     }
 
     // ===== MAP TAB =====
     function renderMap() {
-        const container = document.getElementById('mapDots');
+        var container = document.getElementById('mapDots');
         container.innerHTML = '';
-        const positions = [
-            { id:1, top:'35%', left:'40%', online:true },
-            { id:2, top:'25%', left:'55%', online:true },
-            { id:5, top:'60%', left:'35%', online:true },
-            { id:6, top:'20%', left:'70%', online:true },
-            { id:7, top:'65%', left:'60%', online:false },
-            { id:9, top:'45%', left:'62%', online:true },
-            { id:3, top:'75%', left:'75%', online:false },
-            { id:12, top:'30%', left:'25%', online:true },
-        ];
-
-        positions.forEach(pos => {
-            const p = profiles.find(x => x.id === pos.id);
-            if (!p) return;
-            container.innerHTML += `
-                <div class="map-dot ${pos.online ? 'online' : 'offline'}" style="top:${pos.top}; left:${pos.left};">
-                    <div class="map-dot-label">${p.name} (${p.dog})</div>
-                </div>
-            `;
+        // Use profilesCache to render dots at pseudo-random positions
+        profilesCache.slice(0, 8).forEach(function(p, i) {
+            var positions = [
+                { top:'35%', left:'40%' }, { top:'25%', left:'55%' },
+                { top:'60%', left:'35%' }, { top:'20%', left:'70%' },
+                { top:'65%', left:'60%' }, { top:'45%', left:'62%' },
+                { top:'75%', left:'75%' }, { top:'30%', left:'25%' },
+            ];
+            var pos = positions[i % positions.length];
+            var dog = p.dogs && p.dogs[0] ? p.dogs[0] : {};
+            container.innerHTML += '<div class="map-dot ' + (p.is_available_today ? 'online' : 'offline') + '" style="top:' + pos.top + '; left:' + pos.left + ';">' +
+                '<div class="map-dot-label">' + escapeHtml(p.name) + (dog.name ? ' (' + escapeHtml(dog.name) + ')' : '') + '</div>' +
+            '</div>';
         });
     }
 
     // ===== PROFILE TAB =====
-    function toggleOnline() {
-        const track = document.getElementById('onlineToggle');
-        const text = document.getElementById('onlineText');
-        track.classList.toggle('on');
-        text.textContent = track.classList.contains('on') ? 'Dostupný' : 'Nedostupný';
+    function renderProfile() {
+        if (!currentUser) return;
+        var u = currentUser;
+        var dog = u.dogs && u.dogs[0] ? u.dogs[0] : null;
+
+        document.querySelector('.profile-big-avatar').textContent = u.initials || '';
+        document.querySelector('.profile-name').textContent = u.name || '';
+        document.querySelector('.profile-city').textContent = u.city || '';
+
+        // Toggle state
+        var track = document.getElementById('onlineToggle');
+        var text = document.getElementById('onlineText');
+        if (u.is_available_today) {
+            track.classList.add('on');
+            text.textContent = 'Dostupný';
+        } else {
+            track.classList.remove('on');
+            text.textContent = 'Nedostupný';
+        }
+
+        // Stats
+        var statValues = document.querySelectorAll('.stat-value');
+        if (statValues.length >= 3) {
+            statValues[0].textContent = matchesCache.length || '0';
+            statValues[2].textContent = u.created_at ? new Date(u.created_at).toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' }) : '';
+        }
+    }
+
+    async function toggleOnline() {
+        var track = document.getElementById('onlineToggle');
+        var text = document.getElementById('onlineText');
+        try {
+            var data = await apiFetch('/profile-update.php?action=toggle_available', { method: 'POST' });
+            if (data.success) {
+                currentUser.is_available_today = data.is_available_today;
+                if (data.is_available_today) {
+                    track.classList.add('on');
+                    text.textContent = 'Dostupný';
+                } else {
+                    track.classList.remove('on');
+                    text.textContent = 'Nedostupný';
+                }
+            }
+        } catch(e) {
+            alert('Chyba připojení k serveru.');
+        }
+    }
+
+    // ===== LOGOUT =====
+    async function doLogout() {
+        try {
+            await apiFetch('/auth.php?action=logout', { method: 'POST' });
+        } catch(e) {}
+        window.location.href = 'dogdate.html';
+    }
+
+    // ===== DELETE ACCOUNT =====
+    async function doDeleteAccount() {
+        var password = prompt('Pro smazání účtu zadejte heslo:');
+        if (!password) return;
+        if (!confirm('Opravdu chcete smazat účet? Všechna data budou nenávratně ztracena.')) return;
+        try {
+            var data = await apiFetch('/profile-update.php?action=delete_account', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: password })
+            });
+            if (data.success) {
+                alert('Účet byl smazán.');
+                window.location.href = 'dogdate.html';
+            } else {
+                alert(data.message || 'Nepodařilo se smazat účet.');
+            }
+        } catch(e) { alert('Chyba připojení k serveru.'); }
+    }
+
+    // ===== EXPORT DATA =====
+    async function doExportData() {
+        try {
+            var data = await apiFetch('/profile-update.php?action=export_data', { method: 'POST' });
+            if (data.success) {
+                var blob = new Blob([JSON.stringify(data.export, null, 2)], { type: 'application/json' });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'dogdate-data-export.json';
+                a.click();
+                URL.revokeObjectURL(url);
+            } else {
+                alert(data.message || 'Export se nezdařil.');
+            }
+        } catch(e) { alert('Chyba připojení k serveru.'); }
     }
 
     // ===== BADGES =====
     function updateBadges() {
-        const s = getState();
-        const matchCount = s.matched.length;
-        const msgCount = Object.keys(s.messages).length;
-        const mb = document.getElementById('matchBadge');
-        const msgb = document.getElementById('msgBadge');
-        if (mb) mb.textContent = matchCount;
-        if (msgb) msgb.textContent = msgCount;
+        var mb = document.getElementById('matchBadge');
+        var msgb = document.getElementById('msgBadge');
+        if (mb) mb.textContent = matchesCache.length;
+        if (msgb) msgb.textContent = conversationsCache.filter(function(c){ return c.message_count > 0; }).length;
     }
 
     // ===== INIT =====
-    renderDiscoverGrid();
-    renderMatches();
-    renderConversations();
-    renderMap();
-    updateBadges();
+    checkAuth();
     </script>
     <script src="cookie-consent.js"></script>
 </body>

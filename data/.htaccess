@@ -1,0 +1,16 @@
+# Protect database file
+<Files "dogdate.db">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# Protect database journal
+<Files "dogdate.db-wal">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+<Files "dogdate.db-shm">
+    Order Allow,Deny
+    Deny from all
+</Files>

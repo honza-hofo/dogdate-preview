@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DogDate – Prezentace</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Poppins', sans-serif; background: #111; color: #fff; overflow-x: hidden; }
+
+        .slide { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 60px 40px; position: relative; }
+        .slide-inner { max-width: 900px; width: 100%; }
+
+        /* Slide 1 - Title */
+        .slide-title { background: linear-gradient(135deg, #1a1a1a 0%, #E30A14 100%); text-align: center; }
+        .slide-title .logo-small { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 3px; color: rgba(255,255,255,0.5); margin-bottom: 30px; }
+        .slide-title h1 { font-family: 'Montserrat', sans-serif; font-size: 72px; font-weight: 900; line-height: 1.1; margin-bottom: 20px; }
+        .slide-title h1 span { color: #fff; }
+        .slide-title .tagline { font-size: 24px; font-weight: 300; color: rgba(255,255,255,0.8); margin-bottom: 40px; }
+        .slide-title .meta { font-size: 14px; color: rgba(255,255,255,0.4); }
+        .paw { font-size: 80px; margin-bottom: 20px; display: block; }
+
+        /* Slide 2+ - Content */
+        .slide-dark { background: #111; }
+        .slide-light { background: #f4f5f7; color: #333; }
+        .slide-red { background: #E30A14; }
+        .slide-gradient { background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); }
+
+        h2 { font-family: 'Montserrat', sans-serif; font-size: 48px; font-weight: 800; margin-bottom: 30px; line-height: 1.2; }
+        h2 .red { color: #E30A14; }
+        h3 { font-family: 'Montserrat', sans-serif; font-size: 28px; font-weight: 700; margin-bottom: 16px; }
+        p { font-size: 18px; line-height: 1.8; margin-bottom: 16px; }
+        .subtitle { font-size: 20px; color: rgba(255,255,255,0.6); margin-bottom: 40px; }
+        .slide-light .subtitle { color: #888; }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin: 40px 0; }
+        .stat-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 30px; text-align: center; }
+        .slide-light .stat-card { background: #fff; border: 1px solid #eee; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .stat-number { font-family: 'Montserrat', sans-serif; font-size: 48px; font-weight: 900; color: #E30A14; display: block; }
+        .stat-label { font-size: 14px; color: rgba(255,255,255,0.5); margin-top: 8px; }
+        .slide-light .stat-label { color: #888; }
+
+        /* Steps */
+        .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin: 40px 0; }
+        .step { text-align: center; padding: 30px; }
+        .step-num { display: inline-flex; width: 60px; height: 60px; border-radius: 50%; background: #E30A14; color: #fff; font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 800; align-items: center; justify-content: center; margin-bottom: 20px; }
+        .step h3 { font-size: 20px; margin-bottom: 10px; }
+        .step p { font-size: 15px; color: rgba(255,255,255,0.6); }
+
+        /* Features */
+        .features { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 40px 0; }
+        .feature { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 28px; border-left: 4px solid #E30A14; }
+        .feature-icon { font-size: 28px; margin-bottom: 12px; }
+        .feature h3 { font-size: 18px; margin-bottom: 8px; }
+        .feature p { font-size: 14px; color: rgba(255,255,255,0.6); margin: 0; }
+
+        /* Timeline */
+        .timeline { margin: 40px 0; }
+        .timeline-item { display: flex; gap: 24px; margin-bottom: 24px; align-items: flex-start; }
+        .timeline-dot { width: 16px; height: 16px; border-radius: 50%; background: #E30A14; flex-shrink: 0; margin-top: 6px; }
+        .timeline-dot.done { background: #4ade80; }
+        .timeline-dot.current { background: #E30A14; box-shadow: 0 0 0 4px rgba(227,10,20,0.3); }
+        .timeline-dot.future { background: #555; }
+        .timeline-content h3 { font-size: 18px; margin-bottom: 4px; }
+        .timeline-content p { font-size: 14px; color: rgba(255,255,255,0.5); margin: 0; }
+        .timeline-content .date { font-size: 12px; color: #E30A14; font-weight: 600; }
+
+        /* Quote */
+        .quote { font-size: 28px; font-style: italic; font-weight: 300; line-height: 1.6; border-left: 4px solid #E30A14; padding-left: 30px; margin: 40px 0; color: rgba(255,255,255,0.8); }
+
+        /* CTA */
+        .cta-box { text-align: center; margin-top: 40px; }
+        .cta-btn { display: inline-block; background: #E30A14; color: #fff; padding: 18px 48px; border-radius: 50px; font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; }
+
+        /* Slide number */
+        .slide-num { position: absolute; bottom: 30px; right: 40px; font-family: 'Montserrat', sans-serif; font-size: 13px; color: rgba(255,255,255,0.2); }
+        .slide-light .slide-num { color: rgba(0,0,0,0.15); }
+
+        /* Navigation */
+        .nav-hint { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); font-size: 12px; color: rgba(255,255,255,0.3); z-index: 100; }
+
+        @media (max-width: 768px) {
+            .slide { padding: 40px 24px; }
+            .slide-title h1 { font-size: 42px; }
+            h2 { font-size: 32px; }
+            .stats-grid, .steps, .features { grid-template-columns: 1fr; }
+            .stat-number { font-size: 36px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- SLIDE 1: Title -->
+<div class="slide slide-title">
+    <div class="slide-inner" style="text-align:center;">
+        <div class="logo-small">Makej s MANMATem představuje</div>
+        <span class="paw">🐾</span>
+        <h1><span>DogDate</span></h1>
+        <div class="tagline">Najdi parťáka na procházku pro sebe i svého psa</div>
+        <div class="meta">Březen 2026 · Interní prezentace · MANMAT s.r.o.</div>
+    </div>
+    <div class="slide-num">1 / 8</div>
+</div>
+
+<!-- SLIDE 2: Problem -->
+<div class="slide slide-dark">
+    <div class="slide-inner">
+        <h2>Problém<span class="red">.</span></h2>
+        <div class="subtitle">Co řešíme?</div>
+        <div class="quote">
+            „Chtěl bych chodit na procházky s dalšími pejskaři, ale nevím, kde je najít. Na Facebooku je to nepřehledné a nikdy nevím, kdo je zrovna venku."
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-number">2M+</span>
+                <div class="stat-label">psů v české domácnosti</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">73%</span>
+                <div class="stat-label">pejskařů chodí na procházky sami</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">0</span>
+                <div class="stat-label">dedikovaných appek v ČR</div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-num">2 / 8</div>
+</div>
+
+<!-- SLIDE 3: Solution -->
+<div class="slide slide-gradient">
+    <div class="slide-inner">
+        <h2>Řešení<span class="red">.</span></h2>
+        <div class="subtitle">DogDate propojuje pejskaře v okolí</div>
+        <div class="steps">
+            <div class="step">
+                <div class="step-num">1</div>
+                <h3>Vytvoř profil</h3>
+                <p>Řekni nám o sobě a svém psovi. Přidej fotku a nastav kdy chodíš ven.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <h3>Najdi parťáka</h3>
+                <p>Procházej profily pejskařů v okolí. Filtruj podle vzdálenosti, plemene a času.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <h3>Vyjděte spolu</h3>
+                <p>Domluvte se přes chat a vyražte na společnou procházku.</p>
+            </div>
+        </div>
+    </div>
+    <div class="slide-num">3 / 8</div>
+</div>
+
+<!-- SLIDE 4: Features -->
+<div class="slide slide-dark">
+    <div class="slide-inner">
+        <h2>Funkce<span class="red">.</span></h2>
+        <div class="subtitle">Co DogDate umí</div>
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">👤</div>
+                <h3>Profily pejskařů</h3>
+                <p>Fotka, bio, město, info o psovi (plemeno, velikost, povaha). Vše na jednom místě.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔍</div>
+                <h3>Chytré filtrování</h3>
+                <p>Hledej podle vzdálenosti, velikosti psa, dostupnosti a času procházky.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">💬</div>
+                <h3>Chat a zprávy</h3>
+                <p>Přímá komunikace mezi spojenými pejskaři. Domluvte si procházku.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🟢</div>
+                <h3>Status „Jdu ven dnes"</h3>
+                <p>Jedním klikem dej ostatním vědět, že jsi dnes k dispozici na procházku.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🗺️</div>
+                <h3>Mapa okolí</h3>
+                <p>Podívej se, kdo je poblíž. Zelené tečky = dostupní dnes.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <h3>GDPR a bezpečnost</h3>
+                <p>Šifrovaná hesla, právo na výmaz, export dat. Plně v souladu s GDPR.</p>
+            </div>
+        </div>
+    </div>
+    <div class="slide-num">4 / 8</div>
+</div>
+
+<!-- SLIDE 5: Why us -->
+<div class="slide slide-red">
+    <div class="slide-inner" style="text-align:center;">
+        <h2 style="color:#fff;">Proč zrovna my<span style="color:rgba(255,255,255,0.5);">?</span></h2>
+        <p style="font-size:22px; color:rgba(255,255,255,0.9); max-width:750px; margin:0 auto 20px;">
+            MANMAT stál u samotného zrodu mushingu v Čechách. Přes 35 let vyrábíme profesionální vybavení pro psí sporty a dodáváme ho závodníkům po celém světě.
+        </p>
+        <p style="font-size:18px; color:rgba(255,255,255,0.7); max-width:700px; margin:0 auto 40px;">
+            Provozujeme komunitu MakejsMANMATem.cz, organizujeme sportovní víkendy a známe potřeby pejskařů z první ruky. DogDate je přirozený další krok.
+        </p>
+        <div class="stats-grid">
+            <div class="stat-card" style="background:rgba(255,255,255,0.15); border-color:rgba(255,255,255,0.2);">
+                <span class="stat-number" style="color:#fff;">35+</span>
+                <div class="stat-label" style="color:rgba(255,255,255,0.7);">let na trhu psích sportů</div>
+            </div>
+            <div class="stat-card" style="background:rgba(255,255,255,0.15); border-color:rgba(255,255,255,0.2);">
+                <span class="stat-number" style="color:#fff;">6</span>
+                <div class="stat-label" style="color:rgba(255,255,255,0.7);">ročníků akce Makej</div>
+            </div>
+            <div class="stat-card" style="background:rgba(255,255,255,0.15); border-color:rgba(255,255,255,0.2);">
+                <span class="stat-number" style="color:#fff;">🌍</span>
+                <div class="stat-label" style="color:rgba(255,255,255,0.7);">export vybavení do celého světa</div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-num" style="color:rgba(255,255,255,0.3);">5 / 8</div>
+</div>
+
+<!-- SLIDE 6: Target -->
+<div class="slide slide-dark">
+    <div class="slide-inner">
+        <h2>Pro koho<span class="red">.</span></h2>
+        <div class="subtitle">Cílová skupina</div>
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">🏃</div>
+                <h3>Aktivní pejskaři</h3>
+                <p>Lidé, kteří se svým psem aktivně sportují nebo chtějí začít. Canicross, bikejoring, scootering.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🐕</div>
+                <h3>Noví majitelé psů</h3>
+                <p>Hledají kontakty, rady a parťáky na socializaci svého psa.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">👨‍👩‍👧</div>
+                <h3>Rodiny s dětmi</h3>
+                <p>Společné procházky s dalšími rodinami. Bezpečné prostředí pro děti i psy.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🏡</div>
+                <h3>Nově přistěhovaní</h3>
+                <p>Lidé v novém městě, kteří hledají komunitu přes společný zájem – psy.</p>
+            </div>
+        </div>
+    </div>
+    <div class="slide-num">6 / 8</div>
+</div>
+
+<!-- SLIDE 7: Roadmap -->
+<div class="slide slide-gradient">
+    <div class="slide-inner">
+        <h2>Plán<span class="red">.</span></h2>
+        <div class="subtitle">Kam směřujeme</div>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-dot done"></div>
+                <div class="timeline-content">
+                    <div class="date">Q1 2026 – HOTOVO</div>
+                    <h3>Design a prototyp</h3>
+                    <p>Kompletní UI, registrace, profily, matching, chat, mapa. Demo verze připravena.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot done"></div>
+                <div class="timeline-content">
+                    <div class="date">Q1 2026 – HOTOVO</div>
+                    <h3>Backend a databáze</h3>
+                    <p>PHP API, SQLite databáze, autentizace, GDPR compliance, upload fotek.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot current"></div>
+                <div class="timeline-content">
+                    <div class="date">Q2 2026 – PROBÍHÁ</div>
+                    <h3>Beta testování</h3>
+                    <p>Spuštění na makejsmanmatem.cz. Testování s komunitou Makej s MANMATem.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot future"></div>
+                <div class="timeline-content">
+                    <div class="date">Q3 2026</div>
+                    <h3>Veřejné spuštění</h3>
+                    <p>Otevření pro všechny pejskaře v ČR. Marketing, sociální sítě.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot future"></div>
+                <div class="timeline-content">
+                    <div class="date">Q4 2026</div>
+                    <h3>Mobilní aplikace</h3>
+                    <p>Nativní appka pro iOS a Android. Push notifikace, GPS lokace v reálném čase.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-num">7 / 8</div>
+</div>
+
+<!-- SLIDE 8: Contact -->
+<div class="slide slide-title">
+    <div class="slide-inner" style="text-align:center;">
+        <span class="paw">🐾</span>
+        <h2 style="color:#fff; font-size:42px;">Pojďte do toho s námi</h2>
+        <p style="font-size:20px; color:rgba(255,255,255,0.8); max-width:600px; margin:0 auto 40px;">
+            DogDate je připravený. Hledáme partnery, ambasadory a první testery.
+        </p>
+        <div style="margin-bottom:50px;">
+            <div style="font-family:Montserrat,sans-serif; font-size:18px; font-weight:700; margin-bottom:8px;">Jan Formánek</div>
+            <div style="color:rgba(255,255,255,0.6); margin-bottom:4px;">MANMAT s.r.o.</div>
+            <div style="color:rgba(255,255,255,0.6); margin-bottom:4px;">formanek@manmat.cz</div>
+            <div style="color:rgba(255,255,255,0.6); margin-bottom:4px;">+420 737 060 454</div>
+            <div style="color:rgba(255,255,255,0.6);">makejsmanmatem.cz</div>
+        </div>
+        <div class="meta">© 2026 MANMAT s.r.o. · Důvěrné · Nepředávejte třetím stranám</div>
+    </div>
+    <div class="slide-num">8 / 8</div>
+</div>
+
+<div class="nav-hint">Scrolluj dolů pro další slide ↓</div>
+
+<script>
+// Hide nav hint after first scroll
+window.addEventListener('scroll', function() {
+    document.querySelector('.nav-hint').style.opacity = '0';
+}, { once: true });
+</script>
+
+</body>
+</html>
