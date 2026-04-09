@@ -36,13 +36,17 @@ switch ($_SERVER['REQUEST_METHOD']) {
 }
 
 function listMatches(PDO $db, int $userId): void {
+    $matchesTable = T('matches');
+    $usersTable = T('users');
+    $dogsTable = T('dogs');
+
     $stmt = $db->prepare("
         SELECT m.id, m.user1_id, m.user2_id, m.status, m.created_at,
                u1.name AS user1_name, u1.avatar AS user1_avatar, u1.city AS user1_city,
                u2.name AS user2_name, u2.avatar AS user2_avatar, u2.city AS user2_city
-        FROM matches m
-        JOIN users u1 ON u1.id = m.user1_id
-        JOIN users u2 ON u2.id = m.user2_id
+        FROM `$matchesTable` m
+        JOIN `$usersTable` u1 ON u1.id = m.user1_id
+        JOIN `$usersTable` u2 ON u2.id = m.user2_id
         WHERE m.user1_id = ? OR m.user2_id = ?
         ORDER BY m.created_at DESC
     ");
@@ -58,7 +62,7 @@ function listMatches(PDO $db, int $userId): void {
         $partnerCity = ($match['user1_id'] == $userId) ? $match['user2_city'] : $match['user1_city'];
 
         // Get partner's dog
-        $dogStmt = $db->prepare("SELECT name, breed FROM dogs WHERE user_id = ? LIMIT 1");
+        $dogStmt = $db->prepare("SELECT name, breed FROM `$dogsTable` WHERE user_id = ? LIMIT 1");
         $dogStmt->execute([$partnerId]);
         $dog = $dogStmt->fetch();
 
@@ -88,6 +92,9 @@ function listMatches(PDO $db, int $userId): void {
 }
 
 function createMatch(PDO $db, int $userId): void {
+    $matchesTable = T('matches');
+    $usersTable = T('users');
+
     $targetId = (int)($_GET['user_id'] ?? 0);
     if ($targetId <= 0) {
         // Also check POST body
@@ -99,7 +106,7 @@ function createMatch(PDO $db, int $userId): void {
     if ($targetId === $userId) jsonError('Nemůžete matchovat sám/sama sebe.');
 
     // Check target exists
-    $stmt = $db->prepare("SELECT id FROM users WHERE id = ?");
+    $stmt = $db->prepare("SELECT id FROM `$usersTable` WHERE id = ?");
     $stmt->execute([$targetId]);
     if (!$stmt->fetch()) {
         jsonError('Uživatel nebyl nalezen.', 404);
@@ -107,7 +114,7 @@ function createMatch(PDO $db, int $userId): void {
 
     // Check if match already exists
     $stmt = $db->prepare("
-        SELECT id FROM matches
+        SELECT id FROM `$matchesTable`
         WHERE (user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)
     ");
     $stmt->execute([$userId, $targetId, $targetId, $userId]);
@@ -115,7 +122,7 @@ function createMatch(PDO $db, int $userId): void {
         jsonError('Match již existuje.');
     }
 
-    $stmt = $db->prepare("INSERT INTO matches (user1_id, user2_id) VALUES (?, ?)");
+    $stmt = $db->prepare("INSERT INTO `$matchesTable` (user1_id, user2_id) VALUES (?, ?)");
     $stmt->execute([$userId, $targetId]);
     $matchId = (int)$db->lastInsertId();
 
@@ -127,6 +134,8 @@ function createMatch(PDO $db, int $userId): void {
 }
 
 function updateMatchStatus(PDO $db, int $userId, string $newStatus): void {
+    $matchesTable = T('matches');
+
     $matchId = (int)($_GET['match_id'] ?? 0);
     if ($matchId <= 0) {
         $data = getJsonBody();
@@ -136,7 +145,7 @@ function updateMatchStatus(PDO $db, int $userId, string $newStatus): void {
     if ($matchId <= 0) jsonError('Chybí ID matche.');
 
     // Verify user is part of this match
-    $stmt = $db->prepare("SELECT id, status FROM matches WHERE id = ? AND (user1_id = ? OR user2_id = ?)");
+    $stmt = $db->prepare("SELECT id, status FROM `$matchesTable` WHERE id = ? AND (user1_id = ? OR user2_id = ?)");
     $stmt->execute([$matchId, $userId, $userId]);
     $match = $stmt->fetch();
 
@@ -144,7 +153,7 @@ function updateMatchStatus(PDO $db, int $userId, string $newStatus): void {
         jsonError('Match nebyl nalezen.', 404);
     }
 
-    $stmt = $db->prepare("UPDATE matches SET status = ? WHERE id = ?");
+    $stmt = $db->prepare("UPDATE `$matchesTable` SET status = ? WHERE id = ?");
     $stmt->execute([$newStatus, $matchId]);
 
     $statusLabels = ['confirmed' => 'potvrzen', 'walk_planned' => 'procházka naplánována'];
@@ -155,19 +164,22 @@ function updateMatchStatus(PDO $db, int $userId, string $newStatus): void {
 }
 
 function deleteMatch(PDO $db, int $userId): void {
+    $matchesTable = T('matches');
+    $messagesTable = T('messages');
+
     $matchId = (int)($_GET['match_id'] ?? 0);
     if ($matchId <= 0) jsonError('Chybí ID matche.');
 
     // Verify user is part of this match
-    $stmt = $db->prepare("SELECT id FROM matches WHERE id = ? AND (user1_id = ? OR user2_id = ?)");
+    $stmt = $db->prepare("SELECT id FROM `$matchesTable` WHERE id = ? AND (user1_id = ? OR user2_id = ?)");
     $stmt->execute([$matchId, $userId, $userId]);
     if (!$stmt->fetch()) {
         jsonError('Match nebyl nalezen.', 404);
     }
 
     // Delete associated messages first
-    $db->prepare("DELETE FROM messages WHERE match_id = ?")->execute([$matchId]);
-    $db->prepare("DELETE FROM matches WHERE id = ?")->execute([$matchId]);
+    $db->prepare("DELETE FROM `$messagesTable` WHERE match_id = ?")->execute([$matchId]);
+    $db->prepare("DELETE FROM `$matchesTable` WHERE id = ?")->execute([$matchId]);
 
     jsonResponse(['success' => true, 'message' => 'Match byl odstraněn.']);
 }

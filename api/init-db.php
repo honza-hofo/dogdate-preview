@@ -10,7 +10,114 @@ if (!function_exists('getDB')) {
 function initDatabase(): void {
     $db = getDB();
 
-    // Create tables
+    if (DOGDATE_DB_MODE === 'mysql') {
+        initMySQL($db);
+    } else {
+        initSQLite($db);
+    }
+}
+
+function initMySQL(PDO $db): void {
+    $p = DOGDATE_TABLE_PREFIX;
+
+    // Create tables with MySQL syntax
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS `{$p}users` (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            age INT DEFAULT NULL,
+            city VARCHAR(255) DEFAULT NULL,
+            bio TEXT DEFAULT NULL,
+            avatar VARCHAR(500) DEFAULT NULL,
+            email VARCHAR(255) DEFAULT NULL UNIQUE,
+            password VARCHAR(255) DEFAULT NULL,
+            is_available_today TINYINT(1) DEFAULT 0,
+            latitude DOUBLE DEFAULT NULL,
+            longitude DOUBLE DEFAULT NULL,
+            last_location_update DATETIME DEFAULT NULL,
+            rating DOUBLE DEFAULT 0,
+            rating_count INT DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
+
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS `{$p}dogs` (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            breed VARCHAR(255) DEFAULT NULL,
+            size ENUM('maly','stredni','velky') DEFAULT 'stredni',
+            personality ENUM('hravy','klidny','smisena') DEFAULT 'smisena',
+            photo VARCHAR(500) DEFAULT NULL,
+            walk_distance INT DEFAULT 5,
+            FOREIGN KEY (user_id) REFERENCES `{$p}users`(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
+
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS `{$p}availability` (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            time_slot ENUM('rano','dopoledne','odpoledne','vecer') DEFAULT NULL,
+            FOREIGN KEY (user_id) REFERENCES `{$p}users`(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
+
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS `{$p}matches` (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user1_id INT NOT NULL,
+            user2_id INT NOT NULL,
+            status ENUM('pending','confirmed','walk_planned') DEFAULT 'pending',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user1_id) REFERENCES `{$p}users`(id) ON DELETE CASCADE,
+            FOREIGN KEY (user2_id) REFERENCES `{$p}users`(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
+
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS `{$p}messages` (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            match_id INT NOT NULL,
+            sender_id INT NOT NULL,
+            content TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (match_id) REFERENCES `{$p}matches`(id) ON DELETE CASCADE,
+            FOREIGN KEY (sender_id) REFERENCES `{$p}users`(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
+
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS `{$p}rate_limits` (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            ip VARCHAR(45) NOT NULL,
+            action VARCHAR(100) NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
+
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS `{$p}gdpr_consents` (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            consent_type VARCHAR(50) NOT NULL,
+            consented TINYINT(1) DEFAULT 0,
+            ip_address VARCHAR(45) DEFAULT NULL,
+            consented_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES `{$p}users`(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
+
+    // Check if already seeded
+    $count = $db->query("SELECT COUNT(*) FROM `{$p}users`")->fetchColumn();
+    if ($count > 0) return;
+
+    seedData($db, $p, 'mysql');
+}
+
+function initSQLite(PDO $db): void {
+    // Create tables with SQLite syntax
     $db->exec("
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -75,13 +182,26 @@ function initDatabase(): void {
             action TEXT NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
+
+        CREATE TABLE IF NOT EXISTS gdpr_consents (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            consent_type TEXT NOT NULL,
+            consented INTEGER DEFAULT 0,
+            ip_address TEXT,
+            consented_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
     ");
 
     // Check if already seeded
     $count = $db->query("SELECT COUNT(*) FROM users")->fetchColumn();
     if ($count > 0) return;
 
-    // Seed data - 12 mock profiles matching the JS data
+    seedData($db, '', 'sqlite');
+}
+
+function seedData(PDO $db, string $prefix, string $mode): void {
     $password = password_hash('heslo123', PASSWORD_DEFAULT);
 
     $users = [
@@ -114,7 +234,6 @@ function initDatabase(): void {
         [12, 'Bary', 'Jezevčík', 'maly', 'klidny', 3],
     ];
 
-    // Time slot mapping: Ráno=rano, Dopoledne=dopoledne, Odpoledne=odpoledne, Večer=vecer
     $availability = [
         [1, ['rano', 'odpoledne']],
         [2, ['dopoledne', 'vecer']],
@@ -130,29 +249,32 @@ function initDatabase(): void {
         [12, ['dopoledne', 'vecer']],
     ];
 
-    // Ratings
     $ratings = [
         [4.8, 12], [4.5, 8], [4.9, 15], [4.6, 20], [4.7, 10], [4.3, 5],
         [4.8, 18], [4.4, 7], [5.0, 9], [4.2, 25], [4.9, 6], [4.6, 30],
     ];
 
+    $cityCoords = [
+        'Praha' => [50.0755, 14.4378],
+        'Brno' => [49.1951, 16.6068],
+        'Plzeň' => [49.7384, 13.3736],
+        'Hradec Králové' => [50.2092, 15.8327],
+        'Olomouc' => [49.5938, 17.2509],
+        'Liberec' => [50.7663, 15.0543],
+        'České Budějovice' => [48.9745, 14.4743],
+        'Pardubice' => [50.0343, 15.7812],
+    ];
+
+    $usersTable = $prefix ? "`{$prefix}users`" : 'users';
+    $dogsTable = $prefix ? "`{$prefix}dogs`" : 'dogs';
+    $availTable = $prefix ? "`{$prefix}availability`" : 'availability';
+
     $db->beginTransaction();
 
     try {
         // Insert users
-        // GPS coordinates for Czech cities
-        $cityCoords = [
-            'Praha' => [50.0755, 14.4378],
-            'Brno' => [49.1951, 16.6068],
-            'Plzeň' => [49.7384, 13.3736],
-            'Hradec Králové' => [50.2092, 15.8327],
-            'Olomouc' => [49.5938, 17.2509],
-            'Liberec' => [50.7663, 15.0543],
-            'České Budějovice' => [48.9745, 14.4743],
-            'Pardubice' => [50.0343, 15.7812],
-        ];
-
-        $stmtUser = $db->prepare("INSERT INTO users (name, age, city, bio, email, password, is_available_today, latitude, longitude, last_location_update, rating, rating_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), ?, ?)");
+        $nowExpr = ($mode === 'mysql') ? 'NOW()' : "datetime('now')";
+        $stmtUser = $db->prepare("INSERT INTO $usersTable (name, age, city, bio, email, password, is_available_today, latitude, longitude, last_location_update, rating, rating_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, $nowExpr, ?, ?)");
         foreach ($users as $i => $u) {
             $city = $u[2];
             $lat = isset($cityCoords[$city]) ? $cityCoords[$city][0] + (rand(-100,100) / 10000) : null;
@@ -161,13 +283,13 @@ function initDatabase(): void {
         }
 
         // Insert dogs
-        $stmtDog = $db->prepare("INSERT INTO dogs (user_id, name, breed, size, personality, walk_distance) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmtDog = $db->prepare("INSERT INTO $dogsTable (user_id, name, breed, size, personality, walk_distance) VALUES (?, ?, ?, ?, ?, ?)");
         foreach ($dogs as $d) {
             $stmtDog->execute($d);
         }
 
         // Insert availability
-        $stmtAvail = $db->prepare("INSERT INTO availability (user_id, time_slot) VALUES (?, ?)");
+        $stmtAvail = $db->prepare("INSERT INTO $availTable (user_id, time_slot) VALUES (?, ?)");
         foreach ($availability as $a) {
             foreach ($a[1] as $slot) {
                 $stmtAvail->execute([$a[0], $slot]);

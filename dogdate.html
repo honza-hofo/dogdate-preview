@@ -468,37 +468,70 @@
         </div>
     </section>
 
-    <!-- PROČ SEZNAMKA -->
+    <!-- CO VÁM TO PŘINESE -->
     <section class="why-section">
         <div class="section-inner">
             <div class="section-title">
-                <h2>Proč <span>seznamka</span>?</h2>
-                <p>Co vám společné procházky přinesou</p>
+                <h2>Co vám to <span>přinese</span></h2>
+                <p>Společné procházky mění život vám i vašemu psovi</p>
             </div>
             <div class="benefits-grid">
                 <div class="benefit-card">
-                    <span class="benefit-emoji">🐕</span>
+                    <div class="benefit-icon" style="background:#E30A14;color:#fff;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px;font-weight:800;">S</div>
                     <h3>Socializace psů</h3>
                     <p>Váš pes se naučí vycházet s ostatními psy v klidném prostředí při procházce.</p>
                 </div>
                 <div class="benefit-card">
-                    <span class="benefit-emoji">🤝</span>
+                    <div class="benefit-icon" style="background:#2980b9;color:#fff;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px;font-weight:800;">P</div>
                     <h3>Nová přátelství</h3>
                     <p>Poznejte lidi z okolí, kteří sdílí vaši lásku ke psům a aktivnímu životnímu stylu.</p>
                 </div>
                 <div class="benefit-card">
-                    <span class="benefit-emoji">💪</span>
+                    <div class="benefit-icon" style="background:#27ae60;color:#fff;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px;font-weight:800;">Z</div>
                     <h3>Zdravý pohyb</h3>
                     <p>Společné procházky motivují k delším výletům a pravidelnému pohybu na čerstvém vzduchu.</p>
                 </div>
                 <div class="benefit-card">
-                    <span class="benefit-emoji">🛡️</span>
+                    <div class="benefit-icon" style="background:#8e44ad;color:#fff;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px;font-weight:800;">B</div>
                     <h3>Bezpečnost ve skupině</h3>
                     <p>Ve dvou či více se cítíte bezpečněji, hlavně při večerních procházkách nebo v neznámém terénu.</p>
                 </div>
             </div>
         </div>
     </section>
+
+    <!-- MAPA -->
+    <section style="background:#fff;padding:60px 30px;">
+        <div class="section-inner">
+            <div class="section-title">
+                <h2>Parťáci <span>ve vašem okolí</span></h2>
+                <p>Podívejte se, kdo hledá společníka na procházku poblíž</p>
+            </div>
+            <div id="dogdate-map" style="height:420px;border-radius:16px;margin-top:24px;box-shadow:0 4px 20px rgba(0,0,0,0.08);"></div>
+        </div>
+    </section>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+    (function(){
+        var map = L.map('dogdate-map').setView([50.08, 14.42], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'OSM',maxZoom:18}).addTo(map);
+        var users = [
+            {name:'Jana + Max',breed:'Labrador',lat:50.0755,lng:14.4378,color:'#E30A14'},
+            {name:'Petr + Buddy',breed:'Border kolie',lat:50.0833,lng:14.4167,color:'#2980b9'},
+            {name:'Kateřina + Chlupáč',breed:'Kokršpaněl',lat:50.0680,lng:14.4500,color:'#27ae60'},
+            {name:'Martin + Rex',breed:'Německý ovčák',lat:50.0920,lng:14.4700,color:'#e67e22'},
+            {name:'Tereza + Luna',breed:'Husky',lat:50.0600,lng:14.3900,color:'#8e44ad'},
+            {name:'David + Rocky',breed:'Stafford',lat:50.1000,lng:14.4300,color:'#c0392b'},
+            {name:'Eliška + Daisy',breed:'Zlatý retrívr',lat:50.0850,lng:14.3800,color:'#16a085'},
+            {name:'Tomáš + Azor',breed:'Beagle',lat:50.0700,lng:14.5000,color:'#d35400'},
+        ];
+        users.forEach(function(u){
+            var icon = L.divIcon({className:'',html:'<div style="background:'+u.color+';color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)">🐕</div>',iconSize:[36,36],iconAnchor:[18,18]});
+            L.marker([u.lat,u.lng],{icon:icon}).addTo(map).bindPopup('<strong>'+u.name+'</strong><br>'+u.breed+'<br><a href="dogdate-registrace.html" style="color:#E30A14;font-weight:600;">Napsat zprávu →</a>');
+        });
+    })();
+    </script>
 
     <!-- FEATURED PROFILES -->
     <section class="profiles-section">

@@ -46,6 +46,8 @@ switch ($action) {
 }
 
 function updateProfile(PDO $db, int $userId): void {
+    $usersTable = T('users');
+
     $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
     if (strpos($contentType, 'application/json') !== false) {
         $data = getJsonBody();
@@ -65,7 +67,7 @@ function updateProfile(PDO $db, int $userId): void {
 
     if (isset($data['age'])) {
         $age = (int)$data['age'];
-        if ($age < 15 || $age > 120) jsonError('Zadejte platný věk (15-120).');
+        if ($age < 18 || $age > 120) jsonError('Zadejte platný věk (18-120).');
         $fields[] = 'age = ?';
         $params[] = $age;
     }
@@ -92,7 +94,7 @@ function updateProfile(PDO $db, int $userId): void {
     }
 
     $params[] = $userId;
-    $sql = "UPDATE users SET " . implode(', ', $fields) . " WHERE id = ?";
+    $sql = "UPDATE `$usersTable` SET " . implode(', ', $fields) . " WHERE id = ?";
     $db->prepare($sql)->execute($params);
 
     // Return updated profile
@@ -105,12 +107,14 @@ function updateProfile(PDO $db, int $userId): void {
 }
 
 function toggleAvailable(PDO $db, int $userId): void {
-    $stmt = $db->prepare("SELECT is_available_today FROM users WHERE id = ?");
+    $usersTable = T('users');
+
+    $stmt = $db->prepare("SELECT is_available_today FROM `$usersTable` WHERE id = ?");
     $stmt->execute([$userId]);
     $current = (int)$stmt->fetchColumn();
 
     $new = $current ? 0 : 1;
-    $db->prepare("UPDATE users SET is_available_today = ? WHERE id = ?")->execute([$new, $userId]);
+    $db->prepare("UPDATE `$usersTable` SET is_available_today = ? WHERE id = ?")->execute([$new, $userId]);
 
     jsonResponse([
         'success' => true,
@@ -120,6 +124,8 @@ function toggleAvailable(PDO $db, int $userId): void {
 }
 
 function updateLocation(PDO $db, int $userId): void {
+    $usersTable = T('users');
+
     $data = getJsonBody();
     $lat = isset($data['latitude']) ? (float)$data['latitude'] : null;
     $lng = isset($data['longitude']) ? (float)$data['longitude'] : null;
@@ -128,7 +134,12 @@ function updateLocation(PDO $db, int $userId): void {
         jsonError('Neplatné souřadnice.');
     }
 
-    $db->prepare("UPDATE users SET latitude = ?, longitude = ?, last_location_update = datetime('now') WHERE id = ?")
+    // GDPR: Round to ~1km precision (2 decimal places) to protect privacy
+    $lat = round($lat, 2);
+    $lng = round($lng, 2);
+
+    $nowExpr = (DOGDATE_DB_MODE === 'mysql') ? 'NOW()' : "datetime('now')";
+    $db->prepare("UPDATE `$usersTable` SET latitude = ?, longitude = ?, last_location_update = $nowExpr WHERE id = ?")
        ->execute([$lat, $lng, $userId]);
 
     jsonResponse([
@@ -140,6 +151,8 @@ function updateLocation(PDO $db, int $userId): void {
 }
 
 function uploadAvatar(PDO $db, int $userId): void {
+    $usersTable = T('users');
+
     if (empty($_FILES['avatar'])) {
         jsonError('Žádný soubor nebyl nahrán.');
     }
@@ -148,7 +161,7 @@ function uploadAvatar(PDO $db, int $userId): void {
     $url = processUpload($_FILES['avatar']);
 
     // Delete old avatar file
-    $stmt = $db->prepare("SELECT avatar FROM users WHERE id = ?");
+    $stmt = $db->prepare("SELECT avatar FROM `$usersTable` WHERE id = ?");
     $stmt->execute([$userId]);
     $oldAvatar = $stmt->fetchColumn();
     if ($oldAvatar) {
@@ -156,7 +169,7 @@ function uploadAvatar(PDO $db, int $userId): void {
         if (file_exists($oldPath)) unlink($oldPath);
     }
 
-    $db->prepare("UPDATE users SET avatar = ? WHERE id = ?")->execute([$url, $userId]);
+    $db->prepare("UPDATE `$usersTable` SET avatar = ? WHERE id = ?")->execute([$url, $userId]);
 
     jsonResponse([
         'success' => true,
@@ -166,6 +179,8 @@ function uploadAvatar(PDO $db, int $userId): void {
 }
 
 function uploadDogPhoto(PDO $db, int $userId): void {
+    $dogsTable = T('dogs');
+
     if (empty($_FILES['photo'])) {
         jsonError('Žádný soubor nebyl nahrán.');
     }
@@ -174,7 +189,7 @@ function uploadDogPhoto(PDO $db, int $userId): void {
     if ($dogId <= 0) jsonError('Chybí ID psa.');
 
     // Verify dog belongs to user
-    $stmt = $db->prepare("SELECT id, photo FROM dogs WHERE id = ? AND user_id = ?");
+    $stmt = $db->prepare("SELECT id, photo FROM `$dogsTable` WHERE id = ? AND user_id = ?");
     $stmt->execute([$dogId, $userId]);
     $dog = $stmt->fetch();
     if (!$dog) jsonError('Pes nebyl nalezen.', 404);
@@ -188,7 +203,7 @@ function uploadDogPhoto(PDO $db, int $userId): void {
         if (file_exists($oldPath)) unlink($oldPath);
     }
 
-    $db->prepare("UPDATE dogs SET photo = ? WHERE id = ?")->execute([$url, $dogId]);
+    $db->prepare("UPDATE `$dogsTable` SET photo = ? WHERE id = ?")->execute([$url, $dogId]);
 
     jsonResponse([
         'success' => true,
@@ -198,6 +213,8 @@ function uploadDogPhoto(PDO $db, int $userId): void {
 }
 
 function updateDog(PDO $db, int $userId): void {
+    $dogsTable = T('dogs');
+
     $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
     if (strpos($contentType, 'application/json') !== false) {
         $data = getJsonBody();
@@ -209,7 +226,7 @@ function updateDog(PDO $db, int $userId): void {
 
     if ($dogId > 0) {
         // Update existing dog
-        $stmt = $db->prepare("SELECT id FROM dogs WHERE id = ? AND user_id = ?");
+        $stmt = $db->prepare("SELECT id FROM `$dogsTable` WHERE id = ? AND user_id = ?");
         $stmt->execute([$dogId, $userId]);
         if (!$stmt->fetch()) jsonError('Pes nebyl nalezen.', 404);
 
@@ -236,7 +253,7 @@ function updateDog(PDO $db, int $userId): void {
 
         if (!empty($fields)) {
             $params[] = $dogId;
-            $db->prepare("UPDATE dogs SET " . implode(', ', $fields) . " WHERE id = ?")->execute($params);
+            $db->prepare("UPDATE `$dogsTable` SET " . implode(', ', $fields) . " WHERE id = ?")->execute($params);
         }
     } else {
         // Add new dog
@@ -248,7 +265,7 @@ function updateDog(PDO $db, int $userId): void {
         $personality = in_array($data['personality'] ?? '', ['hravy', 'klidny', 'smisena']) ? $data['personality'] : 'smisena';
         $walkDist = max(1, min(50, (int)($data['walk_distance'] ?? 5)));
 
-        $stmt = $db->prepare("INSERT INTO dogs (user_id, name, breed, size, personality, walk_distance) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt = $db->prepare("INSERT INTO `$dogsTable` (user_id, name, breed, size, personality, walk_distance) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->execute([$userId, $name, $breed, $size, $personality, $walkDist]);
     }
 
@@ -256,6 +273,8 @@ function updateDog(PDO $db, int $userId): void {
 }
 
 function updateAvailability(PDO $db, int $userId): void {
+    $availTable = T('availability');
+
     $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
     if (strpos($contentType, 'application/json') !== false) {
         $data = getJsonBody();
@@ -269,10 +288,10 @@ function updateAvailability(PDO $db, int $userId): void {
     $validSlots = ['rano', 'dopoledne', 'odpoledne', 'vecer'];
 
     // Remove existing
-    $db->prepare("DELETE FROM availability WHERE user_id = ?")->execute([$userId]);
+    $db->prepare("DELETE FROM `$availTable` WHERE user_id = ?")->execute([$userId]);
 
     // Insert new
-    $stmtAvail = $db->prepare("INSERT INTO availability (user_id, time_slot) VALUES (?, ?)");
+    $stmtAvail = $db->prepare("INSERT INTO `$availTable` (user_id, time_slot) VALUES (?, ?)");
     foreach ($timeSlots as $slot) {
         $slot = trim($slot);
         if (in_array($slot, $validSlots)) {
@@ -284,6 +303,12 @@ function updateAvailability(PDO $db, int $userId): void {
 }
 
 function deleteAccount(PDO $db, int $userId): void {
+    $usersTable = T('users');
+    $dogsTable = T('dogs');
+    $availTable = T('availability');
+    $matchesTable = T('matches');
+    $messagesTable = T('messages');
+
     $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
     if (strpos($contentType, 'application/json') !== false) {
         $data = getJsonBody();
@@ -295,7 +320,7 @@ function deleteAccount(PDO $db, int $userId): void {
     $password = $data['password'] ?? '';
     if (empty($password)) jsonError('Pro smazání účtu zadejte heslo.');
 
-    $stmt = $db->prepare("SELECT password FROM users WHERE id = ?");
+    $stmt = $db->prepare("SELECT password FROM `$usersTable` WHERE id = ?");
     $stmt->execute([$userId]);
     $hash = $stmt->fetchColumn();
 
@@ -304,7 +329,7 @@ function deleteAccount(PDO $db, int $userId): void {
     }
 
     // Delete avatar and dog photos
-    $stmt = $db->prepare("SELECT avatar FROM users WHERE id = ?");
+    $stmt = $db->prepare("SELECT avatar FROM `$usersTable` WHERE id = ?");
     $stmt->execute([$userId]);
     $avatar = $stmt->fetchColumn();
     if ($avatar) {
@@ -312,7 +337,7 @@ function deleteAccount(PDO $db, int $userId): void {
         if (file_exists($path)) unlink($path);
     }
 
-    $stmt = $db->prepare("SELECT photo FROM dogs WHERE user_id = ?");
+    $stmt = $db->prepare("SELECT photo FROM `$dogsTable` WHERE user_id = ?");
     $stmt->execute([$userId]);
     while ($photo = $stmt->fetchColumn()) {
         if ($photo) {
@@ -321,12 +346,15 @@ function deleteAccount(PDO $db, int $userId): void {
         }
     }
 
+    $consentsTable = T('gdpr_consents');
+
     // Delete all user data (CASCADE handles related tables)
-    $db->prepare("DELETE FROM messages WHERE sender_id = ?")->execute([$userId]);
-    $db->prepare("DELETE FROM matches WHERE user1_id = ? OR user2_id = ?")->execute([$userId, $userId]);
-    $db->prepare("DELETE FROM availability WHERE user_id = ?")->execute([$userId]);
-    $db->prepare("DELETE FROM dogs WHERE user_id = ?")->execute([$userId]);
-    $db->prepare("DELETE FROM users WHERE id = ?")->execute([$userId]);
+    $db->prepare("DELETE FROM `$messagesTable` WHERE sender_id = ?")->execute([$userId]);
+    $db->prepare("DELETE FROM `$matchesTable` WHERE user1_id = ? OR user2_id = ?")->execute([$userId, $userId]);
+    $db->prepare("DELETE FROM `$availTable` WHERE user_id = ?")->execute([$userId]);
+    $db->prepare("DELETE FROM `$dogsTable` WHERE user_id = ?")->execute([$userId]);
+    $db->prepare("DELETE FROM `$consentsTable` WHERE user_id = ?")->execute([$userId]);
+    $db->prepare("DELETE FROM `$usersTable` WHERE id = ?")->execute([$userId]);
 
     session_destroy();
 
@@ -334,24 +362,31 @@ function deleteAccount(PDO $db, int $userId): void {
 }
 
 function exportData(PDO $db, int $userId): void {
+    $usersTable = T('users');
+    $dogsTable = T('dogs');
+    $availTable = T('availability');
+    $matchesTable = T('matches');
+    $messagesTable = T('messages');
+    $consentsTable = T('gdpr_consents');
+
     // Get all user data
-    $stmt = $db->prepare("SELECT id, name, age, city, bio, avatar, email, is_available_today, rating, rating_count, created_at FROM users WHERE id = ?");
+    $stmt = $db->prepare("SELECT id, name, age, city, bio, avatar, email, is_available_today, latitude, longitude, last_location_update, rating, rating_count, created_at FROM `$usersTable` WHERE id = ?");
     $stmt->execute([$userId]);
     $user = $stmt->fetch();
 
-    $stmt = $db->prepare("SELECT name, breed, size, personality, photo, walk_distance FROM dogs WHERE user_id = ?");
+    $stmt = $db->prepare("SELECT name, breed, size, personality, photo, walk_distance FROM `$dogsTable` WHERE user_id = ?");
     $stmt->execute([$userId]);
     $user['dogs'] = $stmt->fetchAll();
 
-    $stmt = $db->prepare("SELECT time_slot FROM availability WHERE user_id = ?");
+    $stmt = $db->prepare("SELECT time_slot FROM `$availTable` WHERE user_id = ?");
     $stmt->execute([$userId]);
     $user['availability'] = array_column($stmt->fetchAll(), 'time_slot');
 
     // Get matches
     $stmt = $db->prepare("
         SELECT m.id, m.status, m.created_at, u.name AS partner_name
-        FROM matches m
-        JOIN users u ON u.id = CASE WHEN m.user1_id = ? THEN m.user2_id ELSE m.user1_id END
+        FROM `$matchesTable` m
+        JOIN `$usersTable` u ON u.id = CASE WHEN m.user1_id = ? THEN m.user2_id ELSE m.user1_id END
         WHERE m.user1_id = ? OR m.user2_id = ?
     ");
     $stmt->execute([$userId, $userId, $userId]);
@@ -360,17 +395,24 @@ function exportData(PDO $db, int $userId): void {
     // Get messages
     $stmt = $db->prepare("
         SELECT msg.content, msg.created_at, m.id AS match_id
-        FROM messages msg
-        JOIN matches m ON m.id = msg.match_id
+        FROM `$messagesTable` msg
+        JOIN `$matchesTable` m ON m.id = msg.match_id
         WHERE msg.sender_id = ?
         ORDER BY msg.created_at ASC
     ");
     $stmt->execute([$userId]);
     $user['sent_messages'] = $stmt->fetchAll();
 
+    // GDPR consents
+    $stmt = $db->prepare("SELECT consent_type, consented, ip_address, consented_at FROM `$consentsTable` WHERE user_id = ? ORDER BY consented_at ASC");
+    $stmt->execute([$userId]);
+    $user['gdpr_consents'] = $stmt->fetchAll();
+
     jsonResponse([
         'success' => true,
         'export' => $user,
         'exported_at' => date('Y-m-d H:i:s'),
+        'data_controller' => 'MANMAT s.r.o., K Drubezarne 220, 549 54 Police nad Metuji, ICO: 03166236',
+        'contact' => 'formanek@manmat.cz',
     ]);
 }

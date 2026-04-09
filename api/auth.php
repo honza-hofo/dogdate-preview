@@ -48,13 +48,30 @@ function handleRegister(): void {
     if (empty($name)) jsonError('Jméno je povinné.');
     if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) jsonError('Zadejte platný email.');
     if (strlen($password) < 6) jsonError('Heslo musí mít alespoň 6 znaků.');
-    if ($age < 15 || $age > 120) jsonError('Zadejte platný věk (15-120).');
+    if ($age < 18 || $age > 120) jsonError('Služba DogDate je určena osobám starším 18 let.');
     if (empty($city)) jsonError('Město je povinné.');
 
+    // GDPR consent validation
+    $consentTerms = !empty($data['consent_terms']);
+    $consentPrivacy = !empty($data['consent_privacy']);
+    $consentLocation = !empty($data['consent_location']);
+    $consentPhotos = !empty($data['consent_photos']);
+
+    if (!$consentTerms || !$consentPrivacy) {
+        jsonError('Pro registraci musíte souhlasit s podmínkami používání a zásadami ochrany osobních údajů.');
+    }
+    if (!$consentLocation) {
+        jsonError('Pro fungování služby je nutný souhlas se zpracováním údajů o poloze.');
+    }
+
     $db = getDB();
+    $usersTable = T('users');
+    $dogsTable = T('dogs');
+    $availTable = T('availability');
+    $consentsTable = T('gdpr_consents');
 
     // Check if email already exists
-    $stmt = $db->prepare("SELECT id FROM users WHERE email = ?");
+    $stmt = $db->prepare("SELECT id FROM `$usersTable` WHERE email = ?");
     $stmt->execute([$email]);
     if ($stmt->fetch()) {
         jsonError('Tento email je již zaregistrován.');
@@ -73,9 +90,17 @@ function handleRegister(): void {
 
     try {
         // Insert user
-        $stmt = $db->prepare("INSERT INTO users (name, age, city, bio, avatar, email, password) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $db->prepare("INSERT INTO `$usersTable` (name, age, city, bio, avatar, email, password) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([$name, $age, $city, $bio, $avatarUrl, $email, $hashedPassword]);
         $userId = (int)$db->lastInsertId();
+
+        // Store GDPR consents
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+        $stmtConsent = $db->prepare("INSERT INTO `$consentsTable` (user_id, consent_type, consented, ip_address) VALUES (?, ?, ?, ?)");
+        $stmtConsent->execute([$userId, 'terms', 1, $ip]);
+        $stmtConsent->execute([$userId, 'privacy', 1, $ip]);
+        $stmtConsent->execute([$userId, 'location', 1, $ip]);
+        $stmtConsent->execute([$userId, 'photos', $consentPhotos ? 1 : 0, $ip]);
 
         // Insert dog if provided
         $dogName = sanitize($data['dog_name'] ?? '');
@@ -97,7 +122,7 @@ function handleRegister(): void {
                 $dogPhotoUrl = processUpload($_FILES['dog_photo']);
             }
 
-            $stmt = $db->prepare("INSERT INTO dogs (user_id, name, breed, size, personality, photo, walk_distance) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $db->prepare("INSERT INTO `$dogsTable` (user_id, name, breed, size, personality, photo, walk_distance) VALUES (?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([$userId, $dogName, $dogBreed, $dogSize, $dogPersonality, $dogPhotoUrl, $dogWalkDistance]);
         }
 
@@ -105,7 +130,7 @@ function handleRegister(): void {
         $timeSlots = $data['availability'] ?? [];
         if (is_string($timeSlots)) $timeSlots = explode(',', $timeSlots);
         $validSlots = ['rano', 'dopoledne', 'odpoledne', 'vecer'];
-        $stmtAvail = $db->prepare("INSERT INTO availability (user_id, time_slot) VALUES (?, ?)");
+        $stmtAvail = $db->prepare("INSERT INTO `$availTable` (user_id, time_slot) VALUES (?, ?)");
         foreach ($timeSlots as $slot) {
             $slot = trim($slot);
             if (in_array($slot, $validSlots)) {
@@ -117,6 +142,32 @@ function handleRegister(): void {
 
         // Auto-login after registration
         $_SESSION['user_id'] = $userId;
+
+        // Send welcome email (only in WordPress context where wp_mail exists)
+        if (function_exists('wp_mail')) {
+            $dogInfo = !empty($dogName) ? "$dogName ($dogBreed)" : '';
+            $emailBody = "Ahoj $name!\n\n";
+            $emailBody .= "Vítej v DogDate – psí seznamce na MakejsMANMATem.cz!\n\n";
+            $emailBody .= "Tvůj účet byl úspěšně vytvořen.\n\n";
+            $emailBody .= "Tvůj profil:\n";
+            $emailBody .= "Jméno: $name\n";
+            $emailBody .= "Město: $city\n";
+            if ($dogInfo) $emailBody .= "Pes: $dogInfo\n";
+            $emailBody .= "\nTeď můžeš procházet profily pejskařů v okolí a najít parťáka na procházku.\n";
+            $emailBody .= "Přihlásit se: https://makejsmanmatem.cz/dogdate-app/\n\n";
+            $emailBody .= "Přejeme spoustu hezkých procházek!\n";
+            $emailBody .= "Tým DogDate · MANMAT s.r.o.\n\n";
+            $emailBody .= "---\n";
+            $emailBody .= "Pokud jsi se neregistroval/a, tento email ignoruj.\n";
+            $emailBody .= "Pro smazání účtu se přihlas a jdi do Profil → Správa osobních údajů.\n";
+
+            wp_mail(
+                $email,
+                'Vítej v DogDate! Tvůj účet je připravený',
+                $emailBody,
+                ['From: DogDate <formanek@manmat.cz>', 'Reply-To: formanek@manmat.cz']
+            );
+        }
 
         jsonResponse([
             'success' => true,
@@ -152,7 +203,8 @@ function handleLogin(): void {
     }
 
     $db = getDB();
-    $stmt = $db->prepare("SELECT id, password FROM users WHERE email = ?");
+    $usersTable = T('users');
+    $stmt = $db->prepare("SELECT id, password FROM `$usersTable` WHERE email = ?");
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
@@ -188,20 +240,23 @@ function handleLogout(): void {
  */
 function getUserProfile(int $userId): ?array {
     $db = getDB();
+    $usersTable = T('users');
+    $dogsTable = T('dogs');
+    $availTable = T('availability');
 
-    $stmt = $db->prepare("SELECT id, name, age, city, bio, avatar, email, is_available_today, rating, rating_count, created_at FROM users WHERE id = ?");
+    $stmt = $db->prepare("SELECT id, name, age, city, bio, avatar, email, is_available_today, rating, rating_count, created_at FROM `$usersTable` WHERE id = ?");
     $stmt->execute([$userId]);
     $user = $stmt->fetch();
 
     if (!$user) return null;
 
     // Get dogs
-    $stmt = $db->prepare("SELECT id, name, breed, size, personality, photo, walk_distance FROM dogs WHERE user_id = ?");
+    $stmt = $db->prepare("SELECT id, name, breed, size, personality, photo, walk_distance FROM `$dogsTable` WHERE user_id = ?");
     $stmt->execute([$userId]);
     $user['dogs'] = $stmt->fetchAll();
 
     // Get availability
-    $stmt = $db->prepare("SELECT time_slot FROM availability WHERE user_id = ?");
+    $stmt = $db->prepare("SELECT time_slot FROM `$availTable` WHERE user_id = ?");
     $stmt->execute([$userId]);
     $user['availability'] = array_column($stmt->fetchAll(), 'time_slot');
 

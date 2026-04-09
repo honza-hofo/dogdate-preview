@@ -1047,19 +1047,26 @@
                     Upravit profil
                 </button>
 
-                <!-- Správa osobních údajů -->
+                <!-- Správa osobních údajů (GDPR) -->
                 <div class="profile-toggle-section" style="text-align: left; margin-top: 24px;">
-                    <span class="toggle-label" style="margin-bottom: 16px;">Správa osobních údajů</span>
+                    <span class="toggle-label" style="margin-bottom: 16px;">Správa osobních údajů (GDPR)</span>
                     <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <p style="font-size: 13px; color: #888; line-height: 1.6; margin: 0;">Dle Nařízení GDPR máte právo na přístup, opravu, výmaz a přenositelnost svých údajů.</p>
                         <a href="dogdate-podminky.html" style="font-size: 14px; color: #E30A14; text-decoration: underline; font-weight: 500;">Zásady ochrany osobních údajů</a>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px;">
+                            <button class="profile-edit-btn" onclick="doExportData()">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                Stáhnout moje data (export)
+                            </button>
+                            <button class="profile-edit-btn" onclick="doShowConsents()">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Historie souhlasů
+                            </button>
+                        </div>
                         <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px;">
                             <button class="profile-edit-btn" style="border-color: #E30A14; color: #E30A14;" onclick="doDeleteAccount()">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                Požádat o výmaz účtu
-                            </button>
-                            <button class="profile-edit-btn" onclick="doExportData()">
-                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                Stáhnout moje data
+                                Smazat účet a všechna data
                             </button>
                         </div>
                         <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #eee;">
@@ -1268,12 +1275,29 @@
 
     async function requestLocation() {
         if (!navigator.geolocation) return;
+        // Check if user already consented to location in registration
+        // Show explanation before requesting GPS
+        var locationConsent = localStorage.getItem('dogdate_location_consent');
+        if (!locationConsent) {
+            var ok = confirm(
+                'DogDate chce zjistit tvoji polohu.\n\n' +
+                'Proc? Abychom ti nasli pejskare v okoli.\n\n' +
+                'Tvoje poloha:\n' +
+                '- bude zaokrouhlena (~1 km presnost)\n' +
+                '- automaticky se smaze po 48 hodinach\n' +
+                '- nebude sdilena s tretimi stranami\n\n' +
+                'Muzes to kdykoliv vypnout v nastaveni prohlizece.'
+            );
+            if (!ok) return;
+            localStorage.setItem('dogdate_location_consent', 'true');
+        }
         return new Promise(function(resolve) {
             navigator.geolocation.getCurrentPosition(
                 async function(pos) {
-                    userLat = pos.coords.latitude;
-                    userLng = pos.coords.longitude;
-                    // Send to API
+                    // Round to ~1km precision for privacy (2 decimal places)
+                    userLat = Math.round(pos.coords.latitude * 100) / 100;
+                    userLng = Math.round(pos.coords.longitude * 100) / 100;
+                    // Send rounded coordinates to API
                     try {
                         await apiFetch('/profile-update.php?action=update_location', {
                             method: 'POST',
@@ -1749,19 +1773,19 @@
         window.location.href = 'dogdate.html';
     }
 
-    // ===== DELETE ACCOUNT =====
+    // ===== DELETE ACCOUNT (GDPR Right to be Forgotten) =====
     async function doDeleteAccount() {
-        var password = prompt('Pro smazání účtu zadejte heslo:');
+        var password = prompt('Pro smazání účtu a VŠECH vašich dat zadejte heslo:');
         if (!password) return;
-        if (!confirm('Opravdu chcete smazat účet? Všechna data budou nenávratně ztracena.')) return;
+        if (!confirm('POZOR: Opravdu chcete smazat účet?\n\nBudou nenávratně smazána VŠECHNA vaše data:\n- Profil a osobní údaje\n- Fotografie\n- Zprávy\n- Seznam parťáků\n- Záznamy o souhlasech\n\nTuto akci nelze vrátit zpět.')) return;
         try {
-            var data = await apiFetch('/profile-update.php?action=delete_account', {
+            var data = await apiFetch('/gdpr.php?action=delete-account', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ password: password })
             });
             if (data.success) {
-                alert('Účet byl smazán.');
+                alert('Účet a veškerá data byla smazána dle GDPR (právo na výmaz).');
                 window.location.href = 'dogdate.html';
             } else {
                 alert(data.message || 'Nepodařilo se smazat účet.');
@@ -1769,20 +1793,58 @@
         } catch(e) { alert('Chyba připojení k serveru.'); }
     }
 
-    // ===== EXPORT DATA =====
+    // ===== EXPORT DATA (GDPR Data Portability) =====
     async function doExportData() {
         try {
-            var data = await apiFetch('/profile-update.php?action=export_data', { method: 'POST' });
+            var data = await apiFetch('/gdpr.php?action=export-data', { method: 'POST' });
             if (data.success) {
-                var blob = new Blob([JSON.stringify(data.export, null, 2)], { type: 'application/json' });
+                var exportData = {
+                    _gdpr_info: 'Export osobních údajů dle čl. 20 GDPR (právo na přenositelnost)',
+                    _data_controller: data.data_controller,
+                    _contact: data.contact,
+                    _exported_at: data.exported_at,
+                    user_data: data.export
+                };
+                var blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
                 var url = URL.createObjectURL(blob);
                 var a = document.createElement('a');
                 a.href = url;
-                a.download = 'dogdate-data-export.json';
+                a.download = 'dogdate-gdpr-export-' + new Date().toISOString().slice(0,10) + '.json';
                 a.click();
                 URL.revokeObjectURL(url);
             } else {
                 alert(data.message || 'Export se nezdařil.');
+            }
+        } catch(e) { alert('Chyba připojení k serveru.'); }
+    }
+
+    // ===== CONSENT HISTORY =====
+    async function doShowConsents() {
+        try {
+            var data = await apiFetch('/gdpr.php?action=consents');
+            if (data.success && data.consents) {
+                var consentLabels = {
+                    'terms': 'Podmínky používání',
+                    'privacy': 'Zásady ochrany údajů',
+                    'location': 'Zpracování polohy (GPS)',
+                    'photos': 'Nahrávání fotografií',
+                    'marketing': 'Marketingová komunikace'
+                };
+                var msg = 'Historie vašich souhlasů:\n\n';
+                if (data.consents.length === 0) {
+                    msg += '(žádné záznamy)';
+                } else {
+                    data.consents.forEach(function(c) {
+                        var label = consentLabels[c.consent_type] || c.consent_type;
+                        var status = c.consented ? 'Udělen' : 'Odvolán';
+                        var date = new Date(c.consented_at).toLocaleString('cs-CZ');
+                        msg += label + ': ' + status + ' (' + date + ')\n';
+                    });
+                }
+                msg += '\nSprávce údajů: MANMAT s.r.o.\nKontakt: formanek@manmat.cz';
+                alert(msg);
+            } else {
+                alert(data.message || 'Nepodařilo se načíst historii souhlasů.');
             }
         } catch(e) { alert('Chyba připojení k serveru.'); }
     }

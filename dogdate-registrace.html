@@ -586,7 +586,7 @@
 
                 <div class="form-group">
                     <label>Věk</label>
-                    <input type="number" id="userAge" placeholder="Tvůj věk" min="16" max="99">
+                    <input type="number" id="userAge" placeholder="Tvůj věk (min. 18)" min="18" max="99">
                 </div>
 
                 <div class="form-group">
@@ -738,22 +738,29 @@
                 <!-- GDPR CONSENT -->
                 <div class="form-group" style="margin-top: 28px;">
                     <div class="gdpr-consent">
-                        <label class="consent-checkbox" id="consentGdpr">
-                            <input type="checkbox" id="checkGdpr">
-                            <div class="consent-check">
-                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
-                            </div>
-                            <span class="consent-text">Souhlasím se zpracováním osobních údajů v souladu se <a href="dogdate-podminky.html" target="_blank">Zásadami ochrany osobních údajů</a>.</span>
-                        </label>
                         <label class="consent-checkbox" id="consentTerms">
                             <input type="checkbox" id="checkTerms">
                             <div class="consent-check">
                                 <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
                             </div>
-                            <span class="consent-text">Souhlasím s <a href="dogdate-podminky.html#podminky" target="_blank">Podmínkami používání služby DogDate</a>.</span>
+                            <span class="consent-text"><strong>*</strong> Souhlasím s <a href="dogdate-podminky.html#podminky" target="_blank">obchodními podmínkami</a> a <a href="dogdate-podminky.html" target="_blank">zásadami ochrany osobních údajů</a>. Potvrzuji, že mi je alespoň 18 let.</span>
                         </label>
-                        <div class="consent-note">Svůj souhlas můžete kdykoli odvolat na <a href="mailto:dog@manmat.cz">dog@manmat.cz</a></div>
-                        <div class="consent-error" id="consentError" style="display:none;">Pro registraci musíte souhlasit se zpracováním údajů</div>
+                        <label class="consent-checkbox" id="consentGdpr">
+                            <input type="checkbox" id="checkGdpr">
+                            <div class="consent-check">
+                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                            </div>
+                            <span class="consent-text"><strong>*</strong> Souhlasím se zpracováním údajů o poloze (GPS) pro vyhledávání pejskařů v okolí.</span>
+                        </label>
+                        <label class="consent-checkbox" id="consentPhotos">
+                            <input type="checkbox" id="checkPhotos">
+                            <div class="consent-check">
+                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                            </div>
+                            <span class="consent-text">Souhlasím s nahráním a zobrazením fotografií v profilu ostatním uživatelům. <em>(volitelné, nutné pro nahrání fotek)</em></span>
+                        </label>
+                        <div class="consent-note">* Povinné pro registraci. Svůj souhlas můžete kdykoli odvolat v nastavení profilu nebo na <a href="mailto:formanek@manmat.cz">formanek@manmat.cz</a>. Správce údajů: MANMAT s.r.o.</div>
+                        <div class="consent-error" id="consentError" style="display:none;">Pro registraci musíte souhlasit s podmínkami a zpracováním údajů o poloze</div>
                     </div>
                 </div>
 
@@ -919,7 +926,7 @@
         if (!email || !email.includes('@')) { alert('Vyplň prosím platný email.'); return; }
         if (password.length < 6) { alert('Heslo musí mít alespoň 6 znaků.'); return; }
         if (password !== passwordConfirm) { alert('Hesla se neshodují.'); return; }
-        if (!age || age < 15 || age > 99) { alert('Vyplň prosím platný věk.'); return; }
+        if (!age || age < 18 || age > 99) { alert('Služba DogDate je určena osobám starším 18 let.'); return; }
         if (!city) { alert('Vyplň prosím město.'); return; }
 
         document.getElementById('step1').classList.remove('active');
@@ -1024,11 +1031,12 @@
 
     // Submit registration to API
     async function submitForm() {
-        const gdprChecked = document.getElementById('checkGdpr').checked;
         const termsChecked = document.getElementById('checkTerms').checked;
+        const locationChecked = document.getElementById('checkGdpr').checked;
+        const photosChecked = document.getElementById('checkPhotos').checked;
         const errorEl = document.getElementById('consentError');
 
-        if (!gdprChecked || !termsChecked) {
+        if (!termsChecked || !locationChecked) {
             errorEl.style.display = 'block';
             errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
@@ -1082,7 +1090,11 @@
                     dog_size: dogSize,
                     dog_personality: dogPersonality,
                     dog_walk_distance: dogWalkDistance,
-                    availability: availability
+                    availability: availability,
+                    consent_terms: termsChecked,
+                    consent_privacy: termsChecked,
+                    consent_location: locationChecked,
+                    consent_photos: photosChecked
                 })
             });
             var data = await res.json();

@@ -24,19 +24,31 @@ switch ($_SERVER['REQUEST_METHOD']) {
 }
 
 function listConversations(PDO $db, int $userId): void {
+    $matchesTable = T('matches');
+    $usersTable = T('users');
+    $messagesTable = T('messages');
+    $dogsTable = T('dogs');
+
+    // NULLS LAST works differently in MySQL vs SQLite
+    if (DOGDATE_DB_MODE === 'mysql') {
+        $orderClause = "ORDER BY last_message_at IS NULL, last_message_at DESC, m.created_at DESC";
+    } else {
+        $orderClause = "ORDER BY last_message_at DESC NULLS LAST, m.created_at DESC";
+    }
+
     // Get all matches with last message
     $stmt = $db->prepare("
         SELECT m.id AS match_id, m.user1_id, m.user2_id, m.status,
                u1.name AS user1_name, u1.avatar AS user1_avatar,
                u2.name AS user2_name, u2.avatar AS user2_avatar,
-               (SELECT content FROM messages msg WHERE msg.match_id = m.id ORDER BY msg.created_at DESC LIMIT 1) AS last_message,
-               (SELECT created_at FROM messages msg WHERE msg.match_id = m.id ORDER BY msg.created_at DESC LIMIT 1) AS last_message_at,
-               (SELECT COUNT(*) FROM messages msg WHERE msg.match_id = m.id) AS message_count
-        FROM matches m
-        JOIN users u1 ON u1.id = m.user1_id
-        JOIN users u2 ON u2.id = m.user2_id
+               (SELECT content FROM `$messagesTable` msg WHERE msg.match_id = m.id ORDER BY msg.created_at DESC LIMIT 1) AS last_message,
+               (SELECT created_at FROM `$messagesTable` msg WHERE msg.match_id = m.id ORDER BY msg.created_at DESC LIMIT 1) AS last_message_at,
+               (SELECT COUNT(*) FROM `$messagesTable` msg WHERE msg.match_id = m.id) AS message_count
+        FROM `$matchesTable` m
+        JOIN `$usersTable` u1 ON u1.id = m.user1_id
+        JOIN `$usersTable` u2 ON u2.id = m.user2_id
         WHERE (m.user1_id = ? OR m.user2_id = ?)
-        ORDER BY last_message_at DESC NULLS LAST, m.created_at DESC
+        $orderClause
     ");
     $stmt->execute([$userId, $userId]);
     $conversations = $stmt->fetchAll();
@@ -55,7 +67,7 @@ function listConversations(PDO $db, int $userId): void {
         }
 
         // Get partner dog
-        $dogStmt = $db->prepare("SELECT name FROM dogs WHERE user_id = ? LIMIT 1");
+        $dogStmt = $db->prepare("SELECT name FROM `$dogsTable` WHERE user_id = ? LIMIT 1");
         $dogStmt->execute([$partnerId]);
         $dog = $dogStmt->fetch();
 
@@ -77,11 +89,15 @@ function listConversations(PDO $db, int $userId): void {
 }
 
 function getMessages(PDO $db, int $userId): void {
+    $matchesTable = T('matches');
+    $messagesTable = T('messages');
+    $usersTable = T('users');
+
     $matchId = (int)($_GET['match_id'] ?? 0);
     if ($matchId <= 0) jsonError('Chybí ID matche.');
 
     // Verify user is part of this match
-    $stmt = $db->prepare("SELECT id FROM matches WHERE id = ? AND (user1_id = ? OR user2_id = ?)");
+    $stmt = $db->prepare("SELECT id FROM `$matchesTable` WHERE id = ? AND (user1_id = ? OR user2_id = ?)");
     $stmt->execute([$matchId, $userId, $userId]);
     if (!$stmt->fetch()) {
         jsonError('Match nebyl nalezen.', 404);
@@ -93,7 +109,7 @@ function getMessages(PDO $db, int $userId): void {
     $offset = ($page - 1) * $limit;
 
     // Count total
-    $countStmt = $db->prepare("SELECT COUNT(*) FROM messages WHERE match_id = ?");
+    $countStmt = $db->prepare("SELECT COUNT(*) FROM `$messagesTable` WHERE match_id = ?");
     $countStmt->execute([$matchId]);
     $total = (int)$countStmt->fetchColumn();
 
@@ -101,8 +117,8 @@ function getMessages(PDO $db, int $userId): void {
     $stmt = $db->prepare("
         SELECT msg.id, msg.sender_id, msg.content, msg.created_at,
                u.name AS sender_name
-        FROM messages msg
-        JOIN users u ON u.id = msg.sender_id
+        FROM `$messagesTable` msg
+        JOIN `$usersTable` u ON u.id = msg.sender_id
         WHERE msg.match_id = ?
         ORDER BY msg.created_at ASC
         LIMIT ? OFFSET ?
@@ -129,6 +145,9 @@ function getMessages(PDO $db, int $userId): void {
 }
 
 function sendMessage(PDO $db, int $userId): void {
+    $matchesTable = T('matches');
+    $messagesTable = T('messages');
+
     $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
     if (strpos($contentType, 'application/json') !== false) {
         $data = getJsonBody();
@@ -144,7 +163,7 @@ function sendMessage(PDO $db, int $userId): void {
     if (mb_strlen($content) > 2000) jsonError('Zpráva je příliš dlouhá (max 2000 znaků).');
 
     // Verify user is part of this match
-    $stmt = $db->prepare("SELECT id, status FROM matches WHERE id = ? AND (user1_id = ? OR user2_id = ?)");
+    $stmt = $db->prepare("SELECT id, status FROM `$matchesTable` WHERE id = ? AND (user1_id = ? OR user2_id = ?)");
     $stmt->execute([$matchId, $userId, $userId]);
     $match = $stmt->fetch();
 
@@ -152,7 +171,7 @@ function sendMessage(PDO $db, int $userId): void {
         jsonError('Match nebyl nalezen.', 404);
     }
 
-    $stmt = $db->prepare("INSERT INTO messages (match_id, sender_id, content) VALUES (?, ?, ?)");
+    $stmt = $db->prepare("INSERT INTO `$messagesTable` (match_id, sender_id, content) VALUES (?, ?, ?)");
     $stmt->execute([$matchId, $userId, $content]);
     $messageId = (int)$db->lastInsertId();
 

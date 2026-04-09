@@ -12,8 +12,8 @@
     .cookie-btn { font-family: "Montserrat", sans-serif; font-size: 13px; font-weight: 700; padding: 14px 28px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; border: 2px solid transparent; text-transform: uppercase; letter-spacing: 0.5px; }\
     .cookie-btn-accept { background: #222; color: #fff; border-color: #222; }\
     .cookie-btn-accept:hover { background: #E30A14; border-color: #E30A14; }\
-    .cookie-btn-reject { background: #fff; color: #333; border-color: #ddd; }\
-    .cookie-btn-reject:hover { border-color: #333; }\
+    .cookie-btn-reject { background: #fff; color: #333; border-color: #222; }\
+    .cookie-btn-reject:hover { background: #f4f5f7; border-color: #333; }\
     .cookie-modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 3500; align-items: center; justify-content: center; }\
     .cookie-modal-overlay.open { display: flex; }\
     .cookie-modal { background: #fff; border-radius: 16px; max-width: 560px; width: 90%; max-height: 85vh; overflow-y: auto; padding: 40px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }\
@@ -42,8 +42,10 @@
     .cookie-info-box a { color: #E30A14; text-decoration: underline; }\
     .cookie-modal-btns { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }\
     .cookie-modal-btns .cookie-btn { flex: 1; min-width: 140px; text-align: center; }\
-    .cookie-btn-save { background: #fff; color: #333; border-color: #ddd; }\
-    .cookie-btn-save:hover { border-color: #333; }\
+    .cookie-btn-save { background: #fff; color: #333; border-color: #222; }\
+    .cookie-btn-save:hover { background: #f4f5f7; border-color: #333; }\
+    .cookie-btn-withdraw { background: none; border: none; color: #999; font-size: 12px; cursor: pointer; text-decoration: underline; padding: 8px 0; margin-top: 4px; }\
+    .cookie-btn-withdraw:hover { color: #E30A14; }\
     @media (max-width: 768px) {\
         .cookie-banner { flex-direction: column; gap: 20px; padding: 24px 20px; text-align: center; }\
         .cookie-banner-btns { width: 100%; }\
@@ -59,19 +61,19 @@
     <div class="cookie-banner" id="cookieBanner">\
         <div class="cookie-banner-text">\
             <h3>Pou\u017E\u00EDv\u00E1me cookies</h3>\
-            <p>Soubory cookies pou\u017E\u00EDv\u00E1me na tomto webu. Pou\u017E\u00EDv\u00E1n\u00EDm tohoto webu souhlas\u00EDte s ukl\u00E1d\u00E1n\u00EDm a pou\u017E\u00EDv\u00E1n\u00EDm nezbytn\u00FDch soubor\u016F cookies. Zakliknut\u00EDm tla\u010D\u00EDtka "P\u0159ijmout v\u0161e" n\u00E1m ud\u011Bl\u00EDte souhlas k ukl\u00E1d\u00E1n\u00ED a pou\u017E\u00EDv\u00E1n\u00ED i dal\u0161\u00EDch soubor\u016F cookies jako jsou analytick\u00E9 a marketingov\u00E9. <a onclick="window._cookieOpenSettings()">Nastaven\u00ED</a></p>\
+            <p>Tento web pou\u017E\u00EDv\u00E1 nezbytn\u00E9 cookies pro spr\u00E1vn\u00E9 fungov\u00E1n\u00ED. Analytick\u00E9 a marketingov\u00E9 cookies pou\u017E\u00EDv\u00E1me <strong>pouze s va\u0161\u00EDm souhlasem</strong>. Bez va\u0161eho souhlasu nebudou ne-nezbytn\u00E9 cookies aktivov\u00E1ny. <a onclick="window._cookieOpenSettings()">Nastaven\u00ED</a> &middot; <a href="dogdate-podminky.html">Z\u00E1sady ochrany \u00FAdaj\u016F</a></p>\
         </div>\
         <div class="cookie-banner-btns">\
             <button class="cookie-btn cookie-btn-accept" onclick="window._cookieAcceptAll()">P\u0159ijmout v\u0161e</button>\
-            <button class="cookie-btn cookie-btn-reject" onclick="window._cookieRejectAll()">Odm\u00EDtnout</button>\
+            <button class="cookie-btn cookie-btn-reject" onclick="window._cookieRejectAll()">Odm\u00EDtnout nepovinn\u00E9</button>\
         </div>\
     </div>\
     <div class="cookie-modal-overlay" id="cookieModal">\
         <div class="cookie-modal">\
             <button class="cookie-modal-close" onclick="window._cookieCloseSettings()">&times;</button>\
             <h2>Nastaven\u00ED cookies</h2>\
-            <h3>Vyu\u017Eit\u00ED cookies</h3>\
-            <p>Soubory cookies pou\u017E\u00EDv\u00E1me k zaji\u0161t\u011Bn\u00ED z\u00E1kladn\u00EDch funkc\u00ED webu jako je p\u0159ihl\u00E1\u0161en\u00ED nebo odes\u00EDl\u00E1n\u00ED jednotliv\u00FDch formul\u00E1\u0159\u016F a ke zlep\u0161en\u00ED va\u0161eho online z\u00E1\u017Eitku. Pro ka\u017Edou kategorii se m\u016F\u017Eete rozhodnout, zda se chcete p\u0159ihl\u00E1sit/odhl\u00E1sit, a to na z\u00E1klad\u011B va\u0161eho svobodn\u00E9ho rozhodnut\u00ED.</p>\
+            <h3>Spr\u00E1va souhlas\u016F s cookies</h3>\
+            <p>Dle Na\u0159\u00EDzen\u00ED GDPR a z\u00E1kona o elektronick\u00FDch komunikac\u00EDch v\u00E1s informujeme o pou\u017E\u00EDvan\u00FDch cookies. Nezbytn\u00E9 cookies nelze vypnout, ostatn\u00ED kategorie m\u016F\u017Eete ovl\u00E1dat n\u00ED\u017Ee. Sv\u016Fj souhlas m\u016F\u017Eete kdykoli zm\u011Bnit nebo odvolat.</p>\
             <div class="cookie-category">\
                 <div class="cookie-category-header" onclick="window._cookieToggleCategory(this)">\
                     <div style="display:flex;align-items:center;gap:8px;">\
@@ -80,7 +82,7 @@
                     </div>\
                     <label class="cookie-toggle"><input type="checkbox" checked disabled><span class="cookie-toggle-slider"></span></label>\
                 </div>\
-                <div class="cookie-category-body">Tyto cookies jsou nezbytn\u00E9 pro spr\u00E1vn\u00E9 fungov\u00E1n\u00ED webu. Zaji\u0161\u0165uj\u00ED z\u00E1kladn\u00ED funkce jako navigaci na str\u00E1nce a p\u0159\u00EDstup k zabezpe\u010Den\u00FDm oblastem. Bez t\u011Bchto cookies nem\u016F\u017Ee web spr\u00E1vn\u011B fungovat.</div>\
+                <div class="cookie-category-body">Tyto cookies jsou nezbytn\u00E9 pro spr\u00E1vn\u00E9 fungov\u00E1n\u00ED webu (p\u0159ihl\u00E1\u0161en\u00ED, session, CSRF ochrana). Pr\u00E1vn\u00ED z\u00E1klad: opr\u00E1vn\u011Bn\u00FD z\u00E1jem (\u010Dl. 6 odst. 1 p\u00EDsm. f) GDPR). Nelze je vypnout.</div>\
             </div>\
             <div class="cookie-category">\
                 <div class="cookie-category-header" onclick="window._cookieToggleCategory(this)">\
@@ -90,7 +92,7 @@
                     </div>\
                     <label class="cookie-toggle"><input type="checkbox" id="cookieAnalytics"><span class="cookie-toggle-slider"></span></label>\
                 </div>\
-                <div class="cookie-category-body">Analytick\u00E9 cookies n\u00E1m pom\u00E1haj\u00ED pochopit, jak n\u00E1v\u0161t\u011Bvn\u00EDci pou\u017E\u00EDvaj\u00ED n\u00E1\u0161 web. Sb\u00EDraj\u00ED anonymn\u00ED \u00FAdaje o po\u010Dtu n\u00E1v\u0161t\u011Bvn\u00EDk\u016F, nejnav\u0161t\u011Bvovan\u011Bj\u0161\u00EDch str\u00E1nk\u00E1ch a zp\u016Fsobu proch\u00E1zen\u00ED webu.</div>\
+                <div class="cookie-category-body">Analytick\u00E9 cookies n\u00E1m pom\u00E1haj\u00ED pochopit, jak n\u00E1v\u0161t\u011Bvn\u00EDci pou\u017E\u00EDvaj\u00ED web. Sb\u00EDraj\u00ED anonymn\u00ED statistiky. Pr\u00E1vn\u00ED z\u00E1klad: souhlas (\u010Dl. 6 odst. 1 p\u00EDsm. a) GDPR). Bez va\u0161eho souhlasu nebudou aktivov\u00E1ny.</div>\
             </div>\
             <div class="cookie-category">\
                 <div class="cookie-category-header" onclick="window._cookieToggleCategory(this)">\
@@ -100,16 +102,19 @@
                     </div>\
                     <label class="cookie-toggle"><input type="checkbox" id="cookieMarketing"><span class="cookie-toggle-slider"></span></label>\
                 </div>\
-                <div class="cookie-category-body">Marketingov\u00E9 cookies se pou\u017E\u00EDvaj\u00ED ke sledov\u00E1n\u00ED n\u00E1v\u0161t\u011Bvn\u00EDk\u016F nap\u0159\u00ED\u010D weby. \u00DA\u010Delem je zobrazovat reklamy, kter\u00E9 jsou relevantn\u00ED a zaj\u00EDmav\u00E9 pro konkr\u00E9tn\u00EDho u\u017Eivatele.</div>\
+                <div class="cookie-category-body">Marketingov\u00E9 cookies slou\u017E\u00ED k zobrazov\u00E1n\u00ED relevantn\u00EDch reklam. Pr\u00E1vn\u00ED z\u00E1klad: souhlas (\u010Dl. 6 odst. 1 p\u00EDsm. a) GDPR). Bez va\u0161eho souhlasu nebudou aktivov\u00E1ny.</div>\
             </div>\
             <div class="cookie-info-box">\
-                <h4>V\u00EDce informac\u00ED</h4>\
-                <p>M\u00E1te-li jak\u00E9koli dotazy t\u00FDkaj\u00EDc\u00ED se na\u0161ich z\u00E1sad t\u00FDkaj\u00EDc\u00EDch se soubor\u016F cookies a va\u0161ich zvolen\u00FDch preferenc\u00ED, <a href="kontakt.html">kontaktujte n\u00E1s</a>.</p>\
+                <h4>Spr\u00E1vce \u00FAdaj\u016F</h4>\
+                <p>MANMAT s.r.o., I\u010CO: 03166236<br>Kontakt: <a href="mailto:formanek@manmat.cz">formanek@manmat.cz</a><br><a href="dogdate-podminky.html">Z\u00E1sady ochrany osobn\u00EDch \u00FAdaj\u016F</a></p>\
             </div>\
             <div class="cookie-modal-btns">\
                 <button class="cookie-btn cookie-btn-accept" onclick="window._cookieAcceptAll()">P\u0159ijmout v\u0161e</button>\
-                <button class="cookie-btn cookie-btn-reject" onclick="window._cookieRejectAll()">Odm\u00EDtnout v\u0161e</button>\
+                <button class="cookie-btn cookie-btn-reject" onclick="window._cookieRejectAll()">Odm\u00EDtnout nepovinn\u00E9</button>\
                 <button class="cookie-btn cookie-btn-save" onclick="window._cookieSaveSettings()">Ulo\u017Eit nastaven\u00ED</button>\
+            </div>\
+            <div style="text-align:center; margin-top: 8px;">\
+                <button class="cookie-btn-withdraw" onclick="window._cookieWithdrawAll()">Odvolat v\u0161echny souhlasy</button>\
             </div>\
         </div>\
     </div>';
@@ -127,8 +132,62 @@
         try { return localStorage.getItem('cookieConsent'); } catch(e) { return null; }
     }
     function setCookieConsent(val) {
-        try { localStorage.setItem('cookieConsent', val); } catch(e) {}
+        try {
+            localStorage.setItem('cookieConsent', val);
+            localStorage.setItem('cookieConsentDate', new Date().toISOString());
+        } catch(e) {}
+        // Also set a simple cookie for server-side detection
+        var consent = JSON.parse(val);
+        document.cookie = 'cookie_consent=' + encodeURIComponent(val) + ';path=/;max-age=31536000;SameSite=Lax';
         cookieConsentGiven = true;
+        applyConsent(consent);
+    }
+    function applyConsent(consent) {
+        // Block or allow non-essential scripts based on consent
+        if (consent.analytics) {
+            enableAnalytics();
+        } else {
+            disableAnalytics();
+        }
+        if (consent.marketing) {
+            enableMarketing();
+        } else {
+            disableMarketing();
+        }
+    }
+    function enableAnalytics() {
+        // Activate analytics scripts (placeholder - add GA/Matomo here)
+        document.querySelectorAll('script[data-cookie-category="analytics"]').forEach(function(s) {
+            if (!s.dataset.loaded) {
+                var ns = document.createElement('script');
+                ns.src = s.dataset.src || '';
+                ns.dataset.loaded = 'true';
+                document.head.appendChild(ns);
+            }
+        });
+    }
+    function disableAnalytics() {
+        // Remove analytics cookies
+        var analyticsCookies = ['_ga', '_gat', '_gid', '_pk_id', '_pk_ses'];
+        analyticsCookies.forEach(function(name) {
+            document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+        });
+    }
+    function enableMarketing() {
+        document.querySelectorAll('script[data-cookie-category="marketing"]').forEach(function(s) {
+            if (!s.dataset.loaded) {
+                var ns = document.createElement('script');
+                ns.src = s.dataset.src || '';
+                ns.dataset.loaded = 'true';
+                document.head.appendChild(ns);
+            }
+        });
+    }
+    function disableMarketing() {
+        var marketingCookies = ['_fbp', '_fbc', 'fr'];
+        marketingCookies.forEach(function(name) {
+            document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+        });
     }
     function showBanner() {
         setTimeout(function() {
@@ -156,8 +215,25 @@
         hideBanner();
         window._cookieCloseSettings();
     };
+    window._cookieWithdrawAll = function() {
+        setCookieConsent(JSON.stringify({ necessary: true, analytics: false, marketing: false }));
+        document.getElementById('cookieAnalytics').checked = false;
+        document.getElementById('cookieMarketing').checked = false;
+        window._cookieCloseSettings();
+        // Show banner again so user knows consent was withdrawn
+        showBanner();
+    };
     window._cookieOpenSettings = function() {
         hideBanner();
+        // Restore toggle states from saved consent
+        var saved = getCookieConsent();
+        if (saved) {
+            try {
+                var c = JSON.parse(saved);
+                document.getElementById('cookieAnalytics').checked = !!c.analytics;
+                document.getElementById('cookieMarketing').checked = !!c.marketing;
+            } catch(e) {}
+        }
         document.getElementById('cookieModal').classList.add('open');
         document.body.style.overflow = 'hidden';
     };
@@ -173,13 +249,28 @@
         chevron.classList.toggle('rotated');
     };
 
+    // Public method to re-open cookie settings (for footer link etc.)
+    window.openCookieSettings = window._cookieOpenSettings;
+
     // Close modal on overlay click
     document.getElementById('cookieModal').addEventListener('click', function(e) {
         if (e.target === this) window._cookieCloseSettings();
     });
 
-    // Show banner if no consent
-    if (!getCookieConsent()) {
+    // On load: apply saved consent or show banner
+    var existing = getCookieConsent();
+    if (existing) {
+        try {
+            var c = JSON.parse(existing);
+            applyConsent(c);
+            cookieConsentGiven = true;
+        } catch(e) {
+            showBanner();
+        }
+    } else {
+        // GDPR: block non-essential by default until consent
+        disableAnalytics();
+        disableMarketing();
         showBanner();
     }
 })();

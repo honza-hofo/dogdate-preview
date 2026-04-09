@@ -12,6 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 $db = getDB();
 $currentUserId = getAuthUserId();
 
+$usersTable = T('users');
+$dogsTable = T('dogs');
+$availTable = T('availability');
+
 // Single profile detail
 if (isset($_GET['id'])) {
     $profileId = (int)$_GET['id'];
@@ -34,13 +38,13 @@ if ($currentUserId > 0) {
 
 // Filter by dog size
 if (!empty($_GET['size']) && in_array($_GET['size'], ['maly', 'stredni', 'velky'])) {
-    $where[] = "u.id IN (SELECT user_id FROM dogs WHERE size = ?)";
+    $where[] = "u.id IN (SELECT user_id FROM `$dogsTable` WHERE size = ?)";
     $params[] = $_GET['size'];
 }
 
 // Filter by personality
 if (!empty($_GET['personality']) && in_array($_GET['personality'], ['hravy', 'klidny', 'smisena'])) {
-    $where[] = "u.id IN (SELECT user_id FROM dogs WHERE personality = ?)";
+    $where[] = "u.id IN (SELECT user_id FROM `$dogsTable` WHERE personality = ?)";
     $params[] = $_GET['personality'];
 }
 
@@ -53,7 +57,7 @@ if (!empty($_GET['available']) && $_GET['available'] === '1') {
 if (!empty($_GET['max_distance'])) {
     $maxDist = (int)$_GET['max_distance'];
     if ($maxDist > 0) {
-        $where[] = "u.id IN (SELECT user_id FROM dogs WHERE walk_distance <= ?)";
+        $where[] = "u.id IN (SELECT user_id FROM `$dogsTable` WHERE walk_distance <= ?)";
         $params[] = $maxDist;
     }
 }
@@ -66,7 +70,7 @@ if (!empty($_GET['city'])) {
 
 // Filter by time slot
 if (!empty($_GET['time_slot']) && in_array($_GET['time_slot'], ['rano', 'dopoledne', 'odpoledne', 'vecer'])) {
-    $where[] = "u.id IN (SELECT user_id FROM availability WHERE time_slot = ?)";
+    $where[] = "u.id IN (SELECT user_id FROM `$availTable` WHERE time_slot = ?)";
     $params[] = $_GET['time_slot'];
 }
 
@@ -80,7 +84,7 @@ if (!empty($_GET['lat']) && !empty($_GET['lng'])) {
     $userLng = (float)$_GET['lng'];
     $geoRadius = !empty($_GET['radius']) ? (float)$_GET['radius'] : 10; // default 10 km
 
-    // Haversine approximation for SQLite (filter by bounding box first, then precise distance)
+    // Haversine approximation (filter by bounding box first, then precise distance)
     $latDelta = $geoRadius / 111.0; // ~111 km per degree latitude
     $lngDelta = $geoRadius / (111.0 * cos(deg2rad($userLat)));
 
@@ -93,7 +97,7 @@ if (!empty($_GET['lat']) && !empty($_GET['lng'])) {
     $params[] = $userLng + $lngDelta;
 } elseif ($currentUserId > 0) {
     // Use current user's location if available
-    $locStmt = $db->prepare("SELECT latitude, longitude FROM users WHERE id = ? AND latitude IS NOT NULL");
+    $locStmt = $db->prepare("SELECT latitude, longitude FROM `$usersTable` WHERE id = ? AND latitude IS NOT NULL");
     $locStmt->execute([$currentUserId]);
     $loc = $locStmt->fetch();
     if ($loc) {
@@ -110,13 +114,13 @@ $limit = min(50, max(1, (int)($_GET['limit'] ?? 20)));
 $offset = ($page - 1) * $limit;
 
 // Count total
-$countStmt = $db->prepare("SELECT COUNT(*) FROM users u $whereClause");
+$countStmt = $db->prepare("SELECT COUNT(*) FROM `$usersTable` u $whereClause");
 $countStmt->execute($params);
 $total = (int)$countStmt->fetchColumn();
 
 // Get users - include lat/lng for distance calculation
 $sql = "SELECT u.id, u.name, u.age, u.city, u.bio, u.avatar, u.is_available_today, u.latitude, u.longitude, u.rating, u.rating_count, u.created_at
-        FROM users u
+        FROM `$usersTable` u
         $whereClause
         ORDER BY u.is_available_today DESC, u.rating DESC
         LIMIT ? OFFSET ?";
@@ -163,7 +167,8 @@ jsonResponse([
 ]);
 
 function getFullProfile(PDO $db, int $id): ?array {
-    $stmt = $db->prepare("SELECT id, name, age, city, bio, avatar, is_available_today, rating, rating_count, created_at FROM users WHERE id = ?");
+    $usersTable = T('users');
+    $stmt = $db->prepare("SELECT id, name, age, city, bio, avatar, is_available_today, rating, rating_count, created_at FROM `$usersTable` WHERE id = ?");
     $stmt->execute([$id]);
     $user = $stmt->fetch();
     if (!$user) return null;
@@ -172,14 +177,16 @@ function getFullProfile(PDO $db, int $id): ?array {
 
 function enrichProfile(PDO $db, array $user): array {
     $userId = $user['id'];
+    $dogsTable = T('dogs');
+    $availTable = T('availability');
 
     // Dogs
-    $stmt = $db->prepare("SELECT id, name, breed, size, personality, photo, walk_distance FROM dogs WHERE user_id = ?");
+    $stmt = $db->prepare("SELECT id, name, breed, size, personality, photo, walk_distance FROM `$dogsTable` WHERE user_id = ?");
     $stmt->execute([$userId]);
     $user['dogs'] = $stmt->fetchAll();
 
     // Availability
-    $stmt = $db->prepare("SELECT time_slot FROM availability WHERE user_id = ?");
+    $stmt = $db->prepare("SELECT time_slot FROM `$availTable` WHERE user_id = ?");
     $stmt->execute([$userId]);
     $user['availability'] = array_column($stmt->fetchAll(), 'time_slot');
 
